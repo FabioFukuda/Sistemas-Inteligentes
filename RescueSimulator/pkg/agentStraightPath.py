@@ -22,8 +22,12 @@ class AgentStraightPath:
         Construtor do agente random
         @param model referencia o ambiente onde o agente estah situado
         """
-       
+
+        #guarda a instância de model para se movimentar (executeGo) e ler a posição atual.
         self.model = model
+
+        #Estado : procurando vítimas (searching) ou voltando (returning)
+        self.state = "searching"
 
         ## Obtem o tempo que tem para executar
         self.tl = configDict["Tl"]
@@ -34,9 +38,7 @@ class AgentStraightPath:
  
         ## Cria a instância do problema na mente do agente (sao suas crencas)
         self.prob = Problem()
-        self.prob.createMaze(model.rows, model.columns, model.maze)
-      
-    
+
         # O agente le sua posica no ambiente por meio do sensor
         initial = self.positionSensor()
         self.prob.defInitialState(initial.row, initial.col)
@@ -45,15 +47,12 @@ class AgentStraightPath:
         # Define o estado atual do agente = estado inicial
         self.currentState = self.prob.initialState
 
-        # Define o estado objetivo:        
-        # definimos um estado objetivo aleatorio
-        # self.prob.defGoalState(randint(0,model.rows-1), randint(0,model.columns-1))
-        
-        # definimos um estado objetivo que veio do arquivo ambiente.txt
-        self.prob.defGoalState(model.maze.board.posGoal[0],model.maze.board.posGoal[1])
-        print("*** Objetivo do agente: ", self.prob.goalState)
-        print("*** Total de vitimas existentes no ambiente: ", self.model.getNumberOfVictims())
+        # Inicializa uma crença do labirinto que o agente possui. Isto é, ele sabe que o tamanho do mapa é no mínimo 
+        # tão grande quanto a sua posição inicial.
+        self.prob.createMaze(self.currentState.row+1,self.currentState.col+1)
 
+        #print("*** Objetivo do agente: ", self.prob.goalState)
+        print("*** Total de vitimas existentes no ambiente: ", self.model.getNumberOfVictims())
 
         """
         DEFINE OS PLANOS DE EXECUÇÃO DO AGENTE
@@ -61,13 +60,8 @@ class AgentStraightPath:
         
         ## Custo da solução
         self.costAll = 0
-
-        ## Cria a instancia do plano para se movimentar aleatoriamente no labirinto (sem nenhuma acao) 
-        self.plan = StraightPathPlan(model.rows, model.columns, self.prob.goalState, initial, "goal", self.mesh)
-
-        ## adicionar crencas sobre o estado do ambiente ao plano - neste exemplo, o agente faz uma copia do que existe no ambiente.
-        ## Em situacoes de exploracao, o agente deve aprender em tempo de execucao onde estao as paredes
-        self.plan.setWalls(model.maze.walls)
+        
+        self.plan = StraightPathPlan(initial, "goal", self.mesh)
         
         ## Adiciona o(s) planos a biblioteca de planos do agente
         self.libPlan=[self.plan]
@@ -90,12 +84,13 @@ class AgentStraightPath:
         ## Redefine o estado atual do agente de acordo com o resultado da execução da ação do ciclo anterior
         self.currentState = self.positionSensor()
         self.plan.updateCurrentState(self.currentState) # atualiza o current state no plano
+
         print("Ag cre que esta em: ", self.currentState)
 
         ## Verifica se a execução do acao do ciclo anterior funcionou ou nao
         if not (self.currentState == self.expectedState):
             print("---> erro na execucao da acao ", self.previousAction, ": esperava estar em ", self.expectedState, ", mas estou em ", self.currentState)
-
+            self.prob.setWall(self.expectedState.row,self.expectedState.col)
         ## Funcionou ou nao, vou somar o custo da acao com o total 
         self.costAll += self.prob.getActionCost(self.previousAction)
         print ("Custo até o momento (com a ação escolhida):", self.costAll) 
@@ -105,8 +100,7 @@ class AgentStraightPath:
         print("Tempo disponivel: ", self.tl)
 
         ## Verifica se atingiu o estado objetivo
-        ## Poderia ser outra condição, como atingiu o custo máximo de operação
-        if self.prob.goalTest(self.currentState):
+        if self.prob.goalTest(self.currentState) and self.state != 'searching':
             print("!!! Objetivo atingido !!!")
             del self.libPlan[0]  ## retira plano da biblioteca
         
@@ -125,7 +119,8 @@ class AgentStraightPath:
         self.executeGo(result[0])
         self.previousAction = result[0]
         self.expectedState = result[1]       
-
+        self.prob.updateMazeBelief(self.expectedState.row,self.expectedState.col)
+        self.prob.printMazeBelief()
         return 1
 
     ## Metodo que executa as acoes

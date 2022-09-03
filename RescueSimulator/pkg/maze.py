@@ -67,7 +67,6 @@ class Maze:
         vs_file = open(os.path.join("config_data" ,"sinaisvitais.txt"),"r")
         diff_file = open(os.path.join("config_data" ,"difacesso.txt"),"r")
 
-
         ## Pega a matriz com todos os lugares (seja quadrado ou triangulo)
         aux = self.board.getListPlaces()
         for i in aux:
