@@ -61,7 +61,7 @@ class AgentStraightPath:
         ## Custo da solução
         self.costAll = 0
         
-        self.plan = StraightPathPlan(initial, "goal", self.mesh)
+        self.plan = StraightPathPlan(initial, "goal", self.mesh,self.prob)
         
         ## Adiciona o(s) planos a biblioteca de planos do agente
         self.libPlan=[self.plan]

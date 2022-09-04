@@ -24,7 +24,7 @@ class Problem:
         """
         A linha/coluna de índices 0 representam paredes. 
         """
-        self.mazeBelief = [[0 for i in range(maxColumns+1)] for j in range(maxRows+1)]
+        self.mazeBelief = [[0 for i in range(maxColumns+2)] for j in range(maxRows+2)]
         self.maxRows = maxRows
         self.maxColumns = maxColumns
         self.cost = [[0.0 for j in range(maxRows*maxColumns)]for i in range(8)]
@@ -32,10 +32,10 @@ class Problem:
     def updateMazeBelief(self,row,col):
         #+1 porque a posição do agente começa a contar no 0. Se row = 0, quer dizer que ele está na linha 1.
         if row+1 > self.maxRows:
-            self.mazeBelief.append([0 for i in range(self.maxColumns+1)])
+            self.mazeBelief.append([0 for i in range(self.maxColumns+2)])
             self.maxRows = row+1
         if col+1 > self.maxColumns:
-            for i in range(self.maxRows+1):
+            for i in range(self.maxRows+2):
                 self.mazeBelief[i].append(0)
             self.maxColumns = col+1
 
@@ -82,7 +82,7 @@ class Problem:
 
     def printMazeBelief(self):
         print('Mapa estimado pelo agente:')
-        for i in range(self.maxRows+1):
+        for i in range(self.maxRows+2):
             col = ""
             for j in range(self.maxColumns+1):
                 col += f'{self.mazeBelief[i][j]}'.rjust(2,' ') + ' '
