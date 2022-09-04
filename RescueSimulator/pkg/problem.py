@@ -16,22 +16,34 @@ class Problem:
         As paredes devem ser colocadas fora desta classe porque este.
         @param maxRows: máximo de linhas do labirinto.
         @param maxColumns: máximo de colunas do labirinto."""
-        self.mazeBelief = [[0 for i in range(maxColumns)] for j in range(maxRows)]
+
+        """mazeBelief = 0 -> caminho desconhecido
+           mazeBelief = 1 -> caminho sem parede
+           mazeBelief = - -> parede"""
+        
+        """
+        A linha/coluna de índices 0 representam paredes. 
+        """
+        self.mazeBelief = [[0 for i in range(maxColumns+1)] for j in range(maxRows+1)]
         self.maxRows = maxRows
         self.maxColumns = maxColumns
         self.cost = [[0.0 for j in range(maxRows*maxColumns)]for i in range(8)]
 
     def updateMazeBelief(self,row,col):
+        #+1 porque a posição do agente começa a contar no 0. Se row = 0, quer dizer que ele está na linha 1.
         if row+1 > self.maxRows:
-            self.mazeBelief[row-1].append([0 for i in range(self.maxColumns)])
+            self.mazeBelief.append([0 for i in range(self.maxColumns+1)])
             self.maxRows = row+1
         if col+1 > self.maxColumns:
-            for i in range(self.maxRows):
+            for i in range(self.maxRows+1):
                 self.mazeBelief[i].append(0)
             self.maxColumns = col+1
 
     def setWall(self,row,col):
-        self.mazeBelief[row][col] = -1
+        #[row+1][col+1] porque as linhas/colunas de índice 0 representam paredes.
+        self.mazeBelief[row+1][col+1] = -1
+    def setPath(self,row,col):
+        self.mazeBelief[row+1][col+1] = 1
 
     def defInitialState(self, row, col):
         """Define o estado inicial.
@@ -69,11 +81,10 @@ class Problem:
             return False
 
     def printMazeBelief(self):
-
         print('Mapa estimado pelo agente:')
-        for i in range(self.maxRows):
+        for i in range(self.maxRows+1):
             col = ""
-            for j in range(self.maxColumns):
-                col += f'{self.mazeBelief[i][j]} '
+            for j in range(self.maxColumns+1):
+                col += f'{self.mazeBelief[i][j]}'.rjust(2,' ') + ' '
             print(col)
                 

@@ -10,8 +10,9 @@ class StraightPathPlan:
         self.currentState = initialState
         self.actions = []
 
-        self.goingRight = 1
-        self.goingDown = 1
+        self.nextAction = 'O'
+        self.EastDir = True
+        self.SouthDir = False
 
     def setWalls(self, walls):
         row = 0
@@ -23,10 +24,11 @@ class StraightPathPlan:
                     self.walls.append((row, col))
                 col += 1
             row += 1
-       
         
     def updateCurrentState(self, state):
-         self.currentState = state
+        if(self.currentState == state):
+            self.nextAction = 'S'
+        self.currentState = state
 
     def randomizeNextPosition(self):
          """ Sorteia uma direcao e calcula a posicao futura do agente 
@@ -49,8 +51,21 @@ class StraightPathPlan:
 
     def chooseAction(self):
         
-        col = "L"  if self.goingRight == 1 else "O"
-        row = "S"  if self.goingDown == 1 else "N"
+        action = "L"  if self.EastDir == 1 else "O"
+   
+        if(self.nextAction == 'S'):
+            action = self.nextAction
+            self.EastDir *= -1
+            self.nextAction = "L"  if self.EastDir == 1 else "O"
+
+        match action:
+            case 'L':
+                return action,State(self.currentState.row,self.currentState.col+1) 
+            case 'S':
+                return action,State(self.currentState.row+1,self.currentState.col) 
+            case 'O':
+                return action,State(self.currentState.row,self.currentState.col-1) 
+
         """
         if(self.isPossibleToMove(State(self.currentState.row,self.currentState.col+self.goingRight))):
             return col,State(self.currentState.row,self.currentState.col+self.goingRight)
@@ -61,7 +76,6 @@ class StraightPathPlan:
             else:
                 self.goingDown *=-1 
         """
-        return col,State(self.currentState.row,self.currentState.col+self.goingRight)
     
     def do(self):
         """

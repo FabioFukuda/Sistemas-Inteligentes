@@ -91,6 +91,9 @@ class AgentStraightPath:
         if not (self.currentState == self.expectedState):
             print("---> erro na execucao da acao ", self.previousAction, ": esperava estar em ", self.expectedState, ", mas estou em ", self.currentState)
             self.prob.setWall(self.expectedState.row,self.expectedState.col)
+        else:
+            self.prob.setPath(self.currentState.row,self.currentState.col)
+
         ## Funcionou ou nao, vou somar o custo da acao com o total 
         self.costAll += self.prob.getActionCost(self.previousAction)
         print ("Custo até o momento (com a ação escolhida):", self.costAll) 
