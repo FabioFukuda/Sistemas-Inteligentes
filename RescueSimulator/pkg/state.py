@@ -20,3 +20,10 @@ class State:
     def __str__(self): 
         # Permite fazer um print(state) diretamente
         return "({0:d}, {1:d})".format(self.row, self.col)
+
+    def __add__(self,other):
+        self.row += other.row
+        self.col += other.col
+    def __sub__(self,other):
+        self.row -= other.row
+        self.col -= other.col

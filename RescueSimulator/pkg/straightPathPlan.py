@@ -3,12 +3,32 @@ from state import State
 import math
 class StraightPathPlan:
     class Node:
-        def __init__(self,father,cost,dir,state):
-            self.father = father    
-            self.cost = cost
-            self.dir = dir
-            self.state = state
+        revDir = {
+            'N':'S',
+            'S': 'N',
+            'L': 'O',
+            'O': 'L',
+            'NL': 'SO',
+            'SO': 'NL',
+            'NO': 'SL',
+            'SL': 'NO',
+        }
+        def __init__(self):
+            self.neighbors = {}
+        def add_neighbor(self,node,dir):
+            self.neighbors[dir] = node
+            node.neighbors[self.revDir[dir]] = self
 
+    dictDir = {
+        'N':State(-1,0),
+        'S':State(1,0),
+        'L':State(0,1),
+        'O':State(0,-1),
+        'NO':State(-1,-1),
+        'NL':State(-1,1),
+        'SO':State(1,-1),
+        'SL':State(1,1)
+    }
     def __init__(self, initialState, name = "none", mesh = "square",prob = None):
 
         self.walls = []
@@ -22,7 +42,11 @@ class StraightPathPlan:
         self.prob = prob
 
         #Guarda o caminho de volta.
-        self.wayBack = []
+        self.wayBack = None
+        #Dict para acessar os nós (chave -> posição no mapa)
+        self.dictDir = {}
+        self.dictDir[(0,0)] = self.Node()
+
     def setWalls(self, walls):
         row = 0
         col = 0
@@ -38,37 +62,53 @@ class StraightPathPlan:
         if(self.currentState == state):
             self.nextAction = 'S'
         self.currentState = state
-        self.upShortestWayback()
-        path = ''
-        for i in self.wayBack:
-            path+= i + ' '
-        print(path)
+        self.upGraph()
+        #self.upShortestWayback()
+        
     #Calcula o melhor caminho para voltar.
+    def upGraph(self):
+        posDir = self.posDirections(self.currentState)
+        if (self.currentState.row,self.currentState.col) not in self.dictDir:
+            self.dictDir[(self.currentState.row,self.currentState.col)] = self.Node()
+        curNode = self.dictDir[(self.currentState.row,self.currentState.col)]
+        for dir in posDir:
+            curNode.add_neighbor(self.dictDir[dir[1]],dir[0])
+
     def upShortestWayback(self):
-        self.a_star_algorithm()
+        pass
+        #self.a_star_algorithm()
         
     def a_star_algorithm(self):
+        #Direções possíveis a partir do estado atual do agente.
         posDir = self.posDirections(self.currentState)
+
+        #inicia uma arvore de busca
         tree = self.Node(None,0,'',State(self.currentState.row,self.currentState.col))
         goal = State(self.initialState.row,self.initialState.col)
-        heurs = {}
 
+        #Estimativas de cada nó (dict[node] = estimativa)
+        heurs = {}
+        
         for dir in posDir:
             cost = dir[1]
             heur = self.calcHeuristic(dir[2][0],dir[2][1])
             node = self.Node(tree,cost,dir[0],State(dir[2][0],dir[2][1]))
             heurs[node] = cost+heur
 
+        #Quando não há ações possíveis(quando o agente inicia no estudo alvo, por exemplo)
         if(len(heurs) == 0):
             return
 
+        #nó atual (current)
         cur = min(heurs,key=heurs.get)
         del heurs[cur]
 
-        if len(self.wayBack)!=0 and cur.dir == self.wayBack[-1]:
-            self.wayBack.append(cur.dir)
-            return 
-        
+        #Se o caminho que ele manda ir é o caminho que já havia sido computado.
+        #if len(self.wayBack)!=0 and cur.dir == self.wayBack[-1]:
+        #    self.wayBack.append(cur.dir)
+        #    return
+
+        #Enquanto ele não acha o caminho de volta
         while(cur.state!=goal):
             posDir = self.posDirections(cur.state)
             for dir in posDir:
@@ -92,21 +132,21 @@ class StraightPathPlan:
     def posDirections(self,state):
         posDir = []
         if self.prob.mazeBelief[state.row][state.col] == 1:
-            posDir.append(('NO',1.5,(state.row-1,state.col-1)))
+            posDir.append(('NO',(state.row-1,state.col-1)))
         if self.prob.mazeBelief[state.row][state.col+1] == 1:
-            posDir.append(('N',1,(state.row-1,state.col)))
+            posDir.append(('N',(state.row-1,state.col)))
         if self.prob.mazeBelief[state.row][state.col+2] == 1:
-            posDir.append(('NL',1.5,(state.row-1,state.col+1)))
+            posDir.append(('NL',(state.row-1,state.col+1)))
         if self.prob.mazeBelief[state.row+1][state.col+2] == 1:
-            posDir.append(('L',1,(state.row,state.col+1)))
+            posDir.append(('L',(state.row,state.col+1)))
         if self.prob.mazeBelief[state.row+2][state.col+2] == 1:
-            posDir.append(('SL',1.5,(state.row+1,state.col+1)))
+            posDir.append(('SL',(state.row+1,state.col+1)))
         if self.prob.mazeBelief[state.row+2][state.col+1] == 1:
-            posDir.append(('S',1,(state.row+1,state.col)))
+            posDir.append(('S',(state.row+1,state.col)))
         if self.prob.mazeBelief[state.row+2][state.col] == 1:
-            posDir.append(('SO',1.5,(state.row+1,state.col-1)))
+            posDir.append(('SO',(state.row+1,state.col-1)))
         if self.prob.mazeBelief[state.row+1][state.col] == 1:
-            posDir.append(('O',1,(state.row,state.col-1)))
+            posDir.append(('O',(state.row,state.col-1)))
         return posDir
 
     def chooseAction(self):
@@ -123,8 +163,7 @@ class StraightPathPlan:
             case 'S':
                 return action,State(self.currentState.row+1,self.currentState.col) 
             case 'O':
-                return action,State(self.currentState.row,self.currentState.col-1) 
-
+                return action,State(self.currentState.row,self.currentState.col-1)
     
     def do(self):
         """
