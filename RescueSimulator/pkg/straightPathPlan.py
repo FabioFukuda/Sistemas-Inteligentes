@@ -1,7 +1,9 @@
+from copy import deepcopy
 from random import randint
 from state import State
 import math
 class StraightPathPlan:
+
     class Node:
         revDir = {
             'N':'S',
@@ -13,22 +15,34 @@ class StraightPathPlan:
             'NO': 'SL',
             'SL': 'NO',
         }
-        def __init__(self):
+        def __init__(self,state):
             self.neighbors = {}
+            self.state = state
+
         def add_neighbor(self,node,dir):
             self.neighbors[dir] = node
             node.neighbors[self.revDir[dir]] = self
 
-    dictDir = {
-        'N':State(-1,0),
-        'S':State(1,0),
-        'L':State(0,1),
-        'O':State(0,-1),
-        'NO':State(-1,-1),
-        'NL':State(-1,1),
-        'SO':State(1,-1),
-        'SL':State(1,1)
+    class AStarState:
+        def __init__(self,node):
+            self.parent = None
+            self.node = node
+            self.visited = False
+            self.cost = 0
+            self.dir = ''
+            self.path = []
+
+    dictCost = {
+        'N':1,
+        'S':1,
+        'L':1,
+        'O':1,
+        'NO':1.5,
+        'NL':1.5,
+        'SO':1.5,
+        'SL':1.5
     }
+
     def __init__(self, initialState, name = "none", mesh = "square",prob = None):
 
         self.walls = []
@@ -44,8 +58,8 @@ class StraightPathPlan:
         #Guarda o caminho de volta.
         self.wayBack = None
         #Dict para acessar os nós (chave -> posição no mapa)
-        self.dictDir = {}
-        self.dictDir[(0,0)] = self.Node()
+        self.dictNode = {}
+        self.dictNode[(0,0)] = self.Node(self.currentState)
 
     def setWalls(self, walls):
         row = 0
@@ -61,74 +75,81 @@ class StraightPathPlan:
     def updateCurrentState(self, state):
         if(self.currentState == state):
             self.nextAction = 'S'
+
+        if state == State(5,5):
+            print('PARAAAA')
+
         self.currentState = state
         self.upGraph()
-        #self.upShortestWayback()
+        self.upShortestWayBack()
+    
         
-    #Calcula o melhor caminho para voltar.
+    
     def upGraph(self):
         posDir = self.posDirections(self.currentState)
-        if (self.currentState.row,self.currentState.col) not in self.dictDir:
-            self.dictDir[(self.currentState.row,self.currentState.col)] = self.Node()
-        curNode = self.dictDir[(self.currentState.row,self.currentState.col)]
+        if (self.currentState.row,self.currentState.col) not in self.dictNode:
+            self.dictNode[(self.currentState.row,self.currentState.col)] = self.Node(self.currentState)
+        curNode = self.dictNode[(self.currentState.row,self.currentState.col)]
         for dir in posDir:
-            curNode.add_neighbor(self.dictDir[dir[1]],dir[0])
+            curNode.add_neighbor(self.dictNode[dir[1]],dir[0])
 
-    def upShortestWayback(self):
-        pass
-        #self.a_star_algorithm()
-        
+    def upShortestWayBack(self):
+        self.a_star_algorithm()
+
+    #Calcula o melhor caminho para voltar.    
     def a_star_algorithm(self):
-        #Direções possíveis a partir do estado atual do agente.
-        posDir = self.posDirections(self.currentState)
 
-        #inicia uma arvore de busca
-        tree = self.Node(None,0,'',State(self.currentState.row,self.currentState.col))
-        goal = State(self.initialState.row,self.initialState.col)
+        #Estimativas de cada estado que estão na borda
+        est = {}
+        goal = self.initialState
 
-        #Estimativas de cada nó (dict[node] = estimativa)
-        heurs = {}
-        
-        for dir in posDir:
-            cost = dir[1]
-            heur = self.calcHeuristic(dir[2][0],dir[2][1])
-            node = self.Node(tree,cost,dir[0],State(dir[2][0],dir[2][1]))
-            heurs[node] = cost+heur
+        curNode = self.dictNode[(self.currentState.row,self.currentState.col)]
+        curState = self.AStarState(curNode)
 
-        #Quando não há ações possíveis(quando o agente inicia no estudo alvo, por exemplo)
-        if(len(heurs) == 0):
+        for dir,node in curNode.neighbors.items():
+            heur = self.calcHeuristic(node.state)
+            cost = self.dictCost[dir]
+
+            newState = self.AStarState(node)
+            newState.parent = curState
+            newState.cost = cost
+            newState.dir = self.Node.revDir[dir]
+            newState.path.append(curNode.state)
+
+            est[newState] = heur+cost
+
+            
+        if len(est) == 0:
             return
 
-        #nó atual (current)
-        cur = min(heurs,key=heurs.get)
-        del heurs[cur]
+        curState =  min(est, key=est.get)
+        curNode = curState.node
+        del est[curState]
 
-        #Se o caminho que ele manda ir é o caminho que já havia sido computado.
-        #if len(self.wayBack)!=0 and cur.dir == self.wayBack[-1]:
-        #    self.wayBack.append(cur.dir)
-        #    return
+        while(curNode.state!=goal):
+            for dir,node in curNode.neighbors.items():
+                if node.state not in curState.path:
+                    heur = self.calcHeuristic(node.state)
+                    newState = self.AStarState(node)
+                    newState.parent = curState
+                    newState.cost = cost+curState.cost
+                    newState.dir = self.Node.revDir[dir]
+                    newState.path = deepcopy(curState.path)
+                    newState.path.append(node.state)
+                    est[newState] = heur+cost
 
-        #Enquanto ele não acha o caminho de volta
-        while(cur.state!=goal):
-            posDir = self.posDirections(cur.state)
-            for dir in posDir:
-                cost = dir[1]+cur.cost
-                heur = self.calcHeuristic(dir[2][0],dir[2][1])
-                node = self.Node(cur,cost,dir[0],State(dir[2][0],dir[2][1]))
-                heurs[node] = cost+heur
-            cur = min(heurs,key=heurs.get)
-            del heurs[cur]
+            curState =  min(est, key=est.get)
+            curNode = curState.node
+            del est[curState]
+        path = ''
+        while curState!=None:
+            path += curState.dir + ' '
+            curState = curState.parent
+        print('Caminho encontrado: ' + path)
+    def calcHeuristic(self,state):
+        return math.sqrt(math.pow((state.row-self.initialState.row),2)+math.pow((state.col-self.initialState.col),2))
 
-        self.wayBack = []
-    
-        while cur.father!=None:
-            self.wayBack.append(cur.dir)
-            cur = cur.father
-
-    def calcHeuristic(self,row,col):
-        return math.sqrt(math.pow((row-self.initialState.row),2)+math.pow((col-self.initialState.col),2))
-
-    #Direções que o agente pode ir de acordo com a sua crença do mapa. Retorna também o custo para ir em determinada direção
+    #Direções que o agente pode ir de acordo com a sua crença do mapa.
     def posDirections(self,state):
         posDir = []
         if self.prob.mazeBelief[state.row][state.col] == 1:
@@ -174,8 +195,38 @@ class StraightPathPlan:
         
         nextMove = self.move()
         return (nextMove[1], self.goalPos == State(nextMove[0][0], nextMove[0][1]))   
+
+
+#Fonte: https://stackoverflow.com/questions/3387691/how-to-perfectly-override-a-dict
+from collections.abc import MutableMapping
+class TransformedDict(MutableMapping):
+    """A dictionary that applies an arbitrary key-altering
+       function before accessing the keys"""
+
+    def __init__(self, *args, **kwargs):
+        self.store = dict()
+        self.update(dict(*args, **kwargs))  # use the free update to set keys
+
+    def __getitem__(self, key):
+        if type(key) == tuple:
+            return self.store[self._keytransform(key)]
+        elif type(key) == StraightPathPlan.Node:
+            return self.sotre[(key.state.row,key.state.col)]
+
+    def __setitem__(self, key, value):
+        self.store[self._keytransform(key)] = value
+
+    def __delitem__(self, key):
+        del self.store[self._keytransform(key)]
+
+    def __iter__(self):
+        return iter(self.store)
     
-     
+    def __len__(self):
+        return len(self.store)
+
+    def _keytransform(self, key):
+        return key     
 
 
         
