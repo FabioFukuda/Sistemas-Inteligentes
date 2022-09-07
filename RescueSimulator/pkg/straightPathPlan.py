@@ -4,6 +4,7 @@ from state import State
 import math
 class StraightPathPlan:
 
+    #Classe auxiliar que mantém as adjacências entre as posições exploradas (mantém as ações possíveis para cada posição).
     class Node:
         revDir = {
             'N':'S',
@@ -16,20 +17,28 @@ class StraightPathPlan:
             'SL': 'NO',
         }
         def __init__(self,state):
+            #Vizinhos conhecidos de cada posição.
             self.neighbors = {}
+            #Posição de cada nó.
             self.state = state
 
         def add_neighbor(self,node,dir):
             self.neighbors[dir] = node
+            #Adiciona no nó vizinho este nó. Porém, se o vizinho está a Leste, o vizinho adiciona este nó a Oeste.
             node.neighbors[self.revDir[dir]] = self
 
+    #Classe auxiliar para manter os estados explorados no algoritmo A*.
     class AStarState:
         def __init__(self,node):
+            #Encadeia os estados para a construção da solução.
             self.parent = None
+            #Nó que o estado representa.
             self.node = node
-            self.visited = False
+            #Atributo auxiliar que mantém o custo até este nó durante a execução do A*.
             self.cost = 0
+            #Direção do nó pai para este nó.
             self.dir = ''
+            #States até este nó. Serve para evitar com que nó já visitados sejam incluidos novamente.
             self.path = []
 
     dictCost = {
@@ -76,17 +85,15 @@ class StraightPathPlan:
         if(self.currentState == state):
             self.nextAction = 'S'
 
-        if state == State(5,5):
-            print('PARAAAA')
-
         self.currentState = state
         self.upGraph()
         self.upShortestWayBack()
     
         
-    
+    #Função para atualizar as adjacências entre os nós (posições) conhecidos.
     def upGraph(self):
         posDir = self.posDirections(self.currentState)
+        #Se não foi criado um nó para a posição atual:
         if (self.currentState.row,self.currentState.col) not in self.dictNode:
             self.dictNode[(self.currentState.row,self.currentState.col)] = self.Node(self.currentState)
         curNode = self.dictNode[(self.currentState.row,self.currentState.col)]
@@ -99,11 +106,13 @@ class StraightPathPlan:
     #Calcula o melhor caminho para voltar.    
     def a_star_algorithm(self):
 
-        #Estimativas de cada estado que estão na borda
+        #Estimativas de cada estado que estão na borda (State:estimativa)
         est = {}
         goal = self.initialState
 
         curNode = self.dictNode[(self.currentState.row,self.currentState.col)]
+
+        #Cria um estado inicial para o algoritmo A*.
         curState = self.AStarState(curNode)
 
         for dir,node in curNode.neighbors.items():
@@ -117,23 +126,25 @@ class StraightPathPlan:
             newState.path.append(curNode.state)
 
             est[newState] = heur+cost
-
-            
+        
         if len(est) == 0:
             return
 
+        #Pega o estado com a menor estimativa na borda.
         curState =  min(est, key=est.get)
         curNode = curState.node
         del est[curState]
 
         while(curNode.state!=goal):
             for dir,node in curNode.neighbors.items():
+                #Se o estado já foi descoberto nesse ramo (evita loops).
                 if node.state not in curState.path:
                     heur = self.calcHeuristic(node.state)
                     newState = self.AStarState(node)
                     newState.parent = curState
                     newState.cost = cost+curState.cost
                     newState.dir = self.Node.revDir[dir]
+                    #Cada estado mantém o caminho até ele
                     newState.path = deepcopy(curState.path)
                     newState.path.append(node.state)
                     est[newState] = heur+cost
@@ -141,11 +152,13 @@ class StraightPathPlan:
             curState =  min(est, key=est.get)
             curNode = curState.node
             del est[curState]
+
         path = ''
         while curState!=None:
             path += curState.dir + ' '
             curState = curState.parent
         print('Caminho encontrado: ' + path)
+        
     def calcHeuristic(self,state):
         return math.sqrt(math.pow((state.row-self.initialState.row),2)+math.pow((state.col-self.initialState.col),2))
 
