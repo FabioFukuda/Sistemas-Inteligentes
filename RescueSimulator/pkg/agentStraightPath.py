@@ -101,7 +101,8 @@ class AgentStraightPath:
         ## consome o tempo gasto
         self.tl -= self.prob.getActionCost(self.previousAction)
         print("Tempo disponivel: ", self.tl)
-
+        self.plan.updateTimeLeft(self.tl)
+        
         ## Verifica se atingiu o estado objetivo
         if self.prob.goalTest(self.currentState) and self.state != 'searching':
             print("!!! Objetivo atingido !!!")

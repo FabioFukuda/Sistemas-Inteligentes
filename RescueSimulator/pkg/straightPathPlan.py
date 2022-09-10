@@ -35,7 +35,7 @@ class StraightPathPlan:
             #Nó que o estado representa.
             self.node = node
             #Atributo auxiliar que mantém o custo até este nó durante a execução do A*.
-            self.cost = 0
+            self.cost = 0.0
             #Direção do nó pai para este nó.
             self.dir = ''
             #States até este nó. Serve para evitar com que nó já visitados sejam incluidos novamente.
@@ -51,7 +51,16 @@ class StraightPathPlan:
         'SO':1.5,
         'SL':1.5
     }
-
+    dictDir = {
+        'N':(-1,0),
+        'S':(1,0),
+        'L':(0,1),
+        'O':(0,-1),
+        'NO':(-1,-1),
+        'NL':(-1,1),
+        'SO':(1,-1),
+        'SL':(1,1)
+    }
     def __init__(self, initialState, name = "none", mesh = "square",prob = None):
 
         self.walls = []
@@ -70,6 +79,15 @@ class StraightPathPlan:
         self.dictNode = {}
         self.dictNode[(0,0)] = self.Node(self.currentState)
 
+        #Tempo estimado para volta
+        self.estTime = 0
+
+        #Define o estado atual do agente: procurando (0) ou voltando para a base (1)
+        self.state = 0
+
+        #Define o caminho de volta
+        self.path = []
+
     def setWalls(self, walls):
         row = 0
         col = 0
@@ -84,12 +102,16 @@ class StraightPathPlan:
     def updateCurrentState(self, state):
         if(self.currentState == state):
             self.nextAction = 'S'
-
+        if(state == State(4,10)):
+            print('Para')
         self.currentState = state
         self.upGraph()
         self.upShortestWayBack()
     
-        
+    def updateTimeLeft(self,time):
+        if(time-1<self.estTime):
+            self.state = 1
+
     #Função para atualizar as adjacências entre os nós (posições) conhecidos.
     def upGraph(self):
         posDir = self.posDirections(self.currentState)
@@ -108,15 +130,15 @@ class StraightPathPlan:
 
         #Estimativas de cada estado que estão na borda (State:estimativa)
         est = {}
-        goal = self.initialState
-
-        curNode = self.dictNode[(self.currentState.row,self.currentState.col)]
+        #goal = self.initialState
+        goal = self.currentState
+        curNode = self.dictNode[(self.initialState.row,self.initialState.col)]
 
         #Cria um estado inicial para o algoritmo A*.
         curState = self.AStarState(curNode)
 
         for dir,node in curNode.neighbors.items():
-            heur = self.calcHeuristic(node.state)
+            heur = self.calcHeuristic(node.state,goal)
             cost = self.dictCost[dir]
 
             newState = self.AStarState(node)
@@ -139,10 +161,11 @@ class StraightPathPlan:
             for dir,node in curNode.neighbors.items():
                 #Se o estado já foi descoberto nesse ramo (evita loops).
                 if node.state not in curState.path:
-                    heur = self.calcHeuristic(node.state)
+                    heur = self.calcHeuristic(node.state,goal)
+
                     newState = self.AStarState(node)
                     newState.parent = curState
-                    newState.cost = cost+curState.cost
+                    newState.cost = self.dictCost[dir]+curState.cost
                     newState.dir = self.Node.revDir[dir]
                     #Cada estado mantém o caminho até ele
                     newState.path = deepcopy(curState.path)
@@ -153,14 +176,16 @@ class StraightPathPlan:
             curNode = curState.node
             del est[curState]
 
-        path = ''
+        self.estTime = curState.cost
+        self.path.clear()
+
         while curState!=None:
-            path += curState.dir + ' '
+            #path += curState.dir + ' '
+            self.path.append(curState.dir)
             curState = curState.parent
-        print('Caminho encontrado: ' + path)
         
-    def calcHeuristic(self,state):
-        return math.sqrt(math.pow((state.row-self.initialState.row),2)+math.pow((state.col-self.initialState.col),2))
+    def calcHeuristic(self,state1,state2):
+        return math.sqrt(math.pow((state1.row-state2.row),2)+math.pow((state1.col-state2.col),2))
 
     #Direções que o agente pode ir de acordo com a sua crença do mapa.
     def posDirections(self,state):
@@ -184,21 +209,25 @@ class StraightPathPlan:
         return posDir
 
     def chooseAction(self):
-        action = "L"  if self.EastDir == 1 else "O"
-   
-        if(self.nextAction == 'S'):
-            action = self.nextAction
-            self.EastDir *= -1
-            self.nextAction = "L"  if self.EastDir == 1 else "O"
+        if(self.state == 0):
+            action = "L"  if self.EastDir == 1 else "O"
+            if(self.nextAction == 'S'):
+                action = self.nextAction
+                self.EastDir *= -1
+                self.nextAction = "L"  if self.EastDir == 1 else "O"
 
-        match action:
-            case 'L':
-                return action,State(self.currentState.row,self.currentState.col+1) 
-            case 'S':
-                return action,State(self.currentState.row+1,self.currentState.col) 
-            case 'O':
-                return action,State(self.currentState.row,self.currentState.col-1)
-    
+            match action:
+                case 'L':
+                    return action,State(self.currentState.row,self.currentState.col+1) 
+                case 'S':
+                    return action,State(self.currentState.row+1,self.currentState.col) 
+                case 'O':
+                    return action,State(self.currentState.row,self.currentState.col-1)
+        else:
+            action = self.path[0]
+            state = State(self.currentState.row+self.dictDir[action][0],self.currentState.col+self.dictDir[action][1])
+            self.path.pop(0)
+            return action,state
     def do(self):
         """
         Método utilizado para o polimorfismo dos planos
