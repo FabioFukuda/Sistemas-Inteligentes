@@ -124,7 +124,8 @@ class StraightPathPlan:
             curNode.add_neighbor(self.dictNode[dir[1]],dir[0])
 
     def upShortestWayBack(self):
-        self.a_star_algorithm(self.initialState,self.currentState)
+        self.path.clear()
+        self.path = self.a_star_algorithm(self.initialState,self.currentState)
 
     #Calcula o melhor caminho para voltar.    
     def a_star_algorithm(self,start,goal):
@@ -158,7 +159,7 @@ class StraightPathPlan:
             nodeDict[newState] = node
             borderNodes[newState] = node
         if len(est) == 0:
-            return
+            return []
 
         #Pega o estado com a menor estimativa na borda.
         curState =  min(est, key=est.get)
@@ -220,12 +221,11 @@ class StraightPathPlan:
             del borderNodes[curState]
 
         self.estTime = curState.cost
-        self.path.clear()
-
+        path = []
         while curState!=None:
-            self.path.append(curState.dir)
+            path.append(curState.dir)
             curState = curState.parent
-        
+        return path
     def calcHeuristic(self,state1,state2):
         difR = abs(state1.row-state2.row)
         difC = abs(state1.col-state2.col)
