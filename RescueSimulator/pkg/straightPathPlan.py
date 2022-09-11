@@ -11,10 +11,10 @@ class StraightPathPlan:
             'S': 'N',
             'L': 'O',
             'O': 'L',
-            'NL': 'SO',
-            'SO': 'NL',
-            'NO': 'SL',
-            'SL': 'NO',
+            'NE': 'SO',
+            'SO': 'NE',
+            'NO': 'SE',
+            'SE': 'NO',
         }
         def __init__(self,state):
             #Vizinhos conhecidos de cada posição.
@@ -40,16 +40,19 @@ class StraightPathPlan:
             self.dir = ''
             #States até este nó. Serve para evitar com que nó já visitados sejam incluidos novamente.
             self.path = []
+            #APAGARR!!!!!
+            self.heur = 0
 
+            
     dictCost = {
         'N':1,
         'S':1,
         'L':1,
         'O':1,
         'NO':1.5,
-        'NL':1.5,
+        'NE':1.5,
         'SO':1.5,
-        'SL':1.5
+        'SE':1.5
     }
     dictDir = {
         'N':(-1,0),
@@ -57,9 +60,9 @@ class StraightPathPlan:
         'L':(0,1),
         'O':(0,-1),
         'NO':(-1,-1),
-        'NL':(-1,1),
+        'NE':(-1,1),
         'SO':(1,-1),
-        'SL':(1,1)
+        'SE':(1,1)
     }
     def __init__(self, initialState, name = "none", mesh = "square",prob = None):
 
@@ -102,8 +105,6 @@ class StraightPathPlan:
     def updateCurrentState(self, state):
         if(self.currentState == state):
             self.nextAction = 'S'
-        if(state == State(4,10)):
-            print('Para')
         self.currentState = state
         self.upGraph()
         self.upShortestWayBack()
@@ -137,6 +138,12 @@ class StraightPathPlan:
         #Cria um estado inicial para o algoritmo A*.
         curState = self.AStarState(curNode)
 
+        minPathNode = {}
+        nodeDict = {}
+        borderNodes = {}
+
+        minPathNode[curNode] = 0
+
         for dir,node in curNode.neighbors.items():
             heur = self.calcHeuristic(node.state,goal)
             cost = self.dictCost[dir]
@@ -146,15 +153,18 @@ class StraightPathPlan:
             newState.cost = cost
             newState.dir = self.Node.revDir[dir]
             newState.path.append(curNode.state)
-
             est[newState] = heur+cost
-        
+
+            minPathNode[node] = cost
+            nodeDict[newState] = node
+            borderNodes[newState] = node
         if len(est) == 0:
             return
 
         #Pega o estado com a menor estimativa na borda.
         curState =  min(est, key=est.get)
         curNode = curState.node
+        
         del est[curState]
 
         while(curNode.state!=goal):
@@ -166,26 +176,64 @@ class StraightPathPlan:
                     newState = self.AStarState(node)
                     newState.parent = curState
                     newState.cost = self.dictCost[dir]+curState.cost
+                    newState.heur=heur
                     newState.dir = self.Node.revDir[dir]
                     #Cada estado mantém o caminho até ele
                     newState.path = deepcopy(curState.path)
-                    newState.path.append(node.state)
-                    est[newState] = heur+cost
-
+                    newState.path.append(curNode.state)
+                 
+                    if node in minPathNode.keys():
+                        if newState.cost>minPathNode[node]:
+                            continue
+                        else:
+                            if node in borderNodes.values():
+                                state = list(borderNodes.keys())[list(borderNodes.values()).index(node)]
+                                del borderNodes[state]
+                                del est[state]
+                                 
+                    est[newState] = heur+newState.cost
+                    borderNodes[newState] = node
+                    minPathNode[node] = newState.cost
+                    '''
+                    if(goal == State(18,20)):
+                        print(f'Nó a ser expandido, Heuristica:{newState.heur}, Estimativa:{newState.heur+newState.cost}')
+                        
+                        maze = [['.' for i in range(26)] for j in range(26)]
+                        maze[goal.row][goal.col] = 'A'
+                        maze[node.state.row][node.state.col] = 'X'
+                        for i in newState.path:
+                            maze[i.row][i.col] = 'X'
+                        for i in range(20):
+                            col = ""
+                            for j in range(25):
+                                col += f'{maze[i][j]} '
+                            col += str(i)
+                            print(col)
+                        e = ''
+                        for i in est.values():
+                            e+= str(i)+ ' '
+                        print(e)
+                '''
             curState =  min(est, key=est.get)
             curNode = curState.node
+
             del est[curState]
+            del borderNodes[curState]
 
         self.estTime = curState.cost
         self.path.clear()
 
         while curState!=None:
-            #path += curState.dir + ' '
             self.path.append(curState.dir)
             curState = curState.parent
         
     def calcHeuristic(self,state1,state2):
-        return math.sqrt(math.pow((state1.row-state2.row),2)+math.pow((state1.col-state2.col),2))
+        difR = abs(state1.row-state2.row)
+        difC = abs(state1.col-state2.col)
+        if(difR>difC):
+            return 1.5*(difC) + (difR-difC) 
+        else:
+            return 1.5*(difR) + (difC-difR) 
 
     #Direções que o agente pode ir de acordo com a sua crença do mapa.
     def posDirections(self,state):
@@ -195,11 +243,11 @@ class StraightPathPlan:
         if self.prob.mazeBelief[state.row][state.col+1] == 1:
             posDir.append(('N',(state.row-1,state.col)))
         if self.prob.mazeBelief[state.row][state.col+2] == 1:
-            posDir.append(('NL',(state.row-1,state.col+1)))
+            posDir.append(('NE',(state.row-1,state.col+1)))
         if self.prob.mazeBelief[state.row+1][state.col+2] == 1:
             posDir.append(('L',(state.row,state.col+1)))
         if self.prob.mazeBelief[state.row+2][state.col+2] == 1:
-            posDir.append(('SL',(state.row+1,state.col+1)))
+            posDir.append(('SE',(state.row+1,state.col+1)))
         if self.prob.mazeBelief[state.row+2][state.col+1] == 1:
             posDir.append(('S',(state.row+1,state.col)))
         if self.prob.mazeBelief[state.row+2][state.col] == 1:
