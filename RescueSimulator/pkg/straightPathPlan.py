@@ -124,16 +124,15 @@ class StraightPathPlan:
             curNode.add_neighbor(self.dictNode[dir[1]],dir[0])
 
     def upShortestWayBack(self):
-        self.a_star_algorithm()
+        self.a_star_algorithm(self.initialState,self.currentState)
 
     #Calcula o melhor caminho para voltar.    
-    def a_star_algorithm(self):
+    def a_star_algorithm(self,start,goal):
 
         #Estimativas de cada estado que estão na borda (State:estimativa)
         est = {}
         #goal = self.initialState
-        goal = self.currentState
-        curNode = self.dictNode[(self.initialState.row,self.initialState.col)]
+        curNode = self.dictNode[(start.row,start.col)]
 
         #Cria um estado inicial para o algoritmo A*.
         curState = self.AStarState(curNode)
