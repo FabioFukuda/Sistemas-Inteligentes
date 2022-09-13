@@ -2,7 +2,7 @@ from copy import deepcopy
 from random import randint
 from state import State
 import math
-class StraightPathPlan:
+class DFSPlan:
 
     #Classe auxiliar que mantém as adjacências entre as posições exploradas (mantém as ações possíveis para cada posição).
     class Node:
@@ -139,7 +139,6 @@ class StraightPathPlan:
         curState = self.AStarState(curNode)
 
         minPathNode = {}
-        nodeDict = {}
         borderNodes = {}
 
         minPathNode[curNode] = 0
@@ -156,7 +155,6 @@ class StraightPathPlan:
             est[newState] = heur+cost
 
             minPathNode[node] = cost
-            nodeDict[newState] = node
             borderNodes[newState] = node
         if len(est) == 0:
             return []
@@ -226,6 +224,7 @@ class StraightPathPlan:
             path.append(curState.dir)
             curState = curState.parent
         return path
+
     def calcHeuristic(self,state1,state2):
         difR = abs(state1.row-state2.row)
         difC = abs(state1.col-state2.col)
