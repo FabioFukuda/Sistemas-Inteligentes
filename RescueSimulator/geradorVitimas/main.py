@@ -6,9 +6,6 @@ sys.path.append('pkg')
 sys.path.append('.')
 from victims_generator import Vict_gen
 
-
-
-
 def main():
     # Lê arquivo config.txt
     arq = open(os.path.join("..", "config_data","config.txt"),"r")

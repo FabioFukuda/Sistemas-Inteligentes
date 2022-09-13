@@ -3,7 +3,7 @@ import os
 
 ## Importa Classes necessarias para o funcionamento
 from model import Model
-from pkg.straightPathPlan import StraightPathPlan
+from dfsPlan import DFSPlan
 from problem import Problem
 from state import State
 from random import randint
@@ -16,7 +16,7 @@ sys.path.append(os.path.join("pkg", "planner"))
 from planner import Planner
 
 ## Classe que define o Agente
-class AgentStraightPath:
+class AgentExplorer:
     def __init__(self, model, configDict):
         """ 
         Construtor do agente random
@@ -61,7 +61,7 @@ class AgentStraightPath:
         ## Custo da solução
         self.costAll = 0
         
-        self.plan = StraightPathPlan(initial, "goal", self.mesh)
+        self.plan = DFSPlan(initial, "goal", self.mesh,self.prob)
         
         ## Adiciona o(s) planos a biblioteca de planos do agente
         self.libPlan=[self.plan]
@@ -101,7 +101,8 @@ class AgentStraightPath:
         ## consome o tempo gasto
         self.tl -= self.prob.getActionCost(self.previousAction)
         print("Tempo disponivel: ", self.tl)
-
+        self.plan.updateTimeLeft(self.tl)
+        
         ## Verifica se atingiu o estado objetivo
         if self.prob.goalTest(self.currentState) and self.state != 'searching':
             print("!!! Objetivo atingido !!!")
@@ -123,7 +124,7 @@ class AgentStraightPath:
         self.previousAction = result[0]
         self.expectedState = result[1]       
         self.prob.updateMazeBelief(self.expectedState.row,self.expectedState.col)
-        self.prob.printMazeBelief()
+        #self.prob.printMazeBelief()
         return 1
 
     ## Metodo que executa as acoes
