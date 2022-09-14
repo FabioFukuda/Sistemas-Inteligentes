@@ -24,6 +24,7 @@ class State:
     def __add__(self,other):
         self.row += other.row
         self.col += other.col
+        
     def __sub__(self,other):
         self.row -= other.row
         self.col -= other.col
