@@ -18,11 +18,6 @@ from planner import Planner
 ## Classe que define o Agente
 class AgentExplorer:
     def __init__(self, model, configDict):
-        """ 
-        Construtor do agente random
-        @param model referencia o ambiente onde o agente estah situado
-        """
-
         #guarda a instância de model para se movimentar (executeGo) e ler a posição atual.
         self.model = model
 
@@ -42,6 +37,7 @@ class AgentExplorer:
         # O agente le sua posica no ambiente por meio do sensor
         initial = self.positionSensor()
         self.prob.defInitialState(initial.row, initial.col)
+        self.prob.defGoalState(-1,-1)
         print("*** Estado inicial do agente: ", self.prob.initialState)
         
         # Define o estado atual do agente = estado inicial
@@ -98,22 +94,28 @@ class AgentExplorer:
         self.costAll += self.prob.getActionCost(self.previousAction)
         print ("Custo até o momento (com a ação escolhida):", self.costAll) 
 
-        ## consome o tempo gasto
-        self.tl -= self.prob.getActionCost(self.previousAction)
-        print("Tempo disponivel: ", self.tl)
-        self.plan.updateTimeLeft(self.tl)
-        
-        ## Verifica se atingiu o estado objetivo
-        if self.prob.goalTest(self.currentState) and self.state != 'searching':
-            print("!!! Objetivo atingido !!!")
-            del self.libPlan[0]  ## retira plano da biblioteca
-        
         ## Verifica se tem vitima na posicao atual    
         victimId = self.victimPresenceSensor()
         if victimId > 0:
             print ("vitima encontrada em ", self.currentState, " id: ", victimId, " sinais vitais: ", self.victimVitalSignalsSensor(victimId))
             print ("vitima encontrada em ", self.currentState, " id: ", victimId, " dif de acesso: ", self.victimDiffOfAcessSensor(victimId))
+            self.tl-=2
 
+        ## consome o tempo gasto
+        self.tl -= self.prob.getActionCost(self.previousAction)
+        
+        print("Tempo disponivel: ", self.tl)
+        state = self.plan.updateTimeLeft(self.tl)
+        if (state == 1 and self.state == 'searching'):
+            self.state = 'returning'
+            self.prob.defGoalState(self.prob.initialState.row,self.prob.initialState.col) 
+
+        ## Verifica se atingiu o estado objetivo
+        if self.prob.goalTest(self.currentState):
+            print("!!! Objetivo atingido !!!")
+            del self.libPlan[0]  ## retira plano da biblioteca
+            return 0
+            
         ## Define a proxima acao a ser executada
         ## currentAction eh uma tupla na forma: <direcao>, <state>
         result = self.plan.chooseAction()

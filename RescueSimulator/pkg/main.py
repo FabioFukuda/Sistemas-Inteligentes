@@ -2,12 +2,11 @@ import sys
 import os
 import time
 
-from agentExp import AgentExplorer
-
+#from agentExp import AgentExplorer
+from agent import Agent
 ## Importa as classes que serao usadas
 sys.path.append(os.path.join("pkg"))
 from model import Model
-from agentExp import AgentExplorer
 
 ## Metodo utilizado para permitir que o usuario construa o labirindo clicando em cima
 def buildMaze(model):
@@ -53,13 +52,13 @@ def main():
     model.draw()
 
     # Cria um agente
-    agent = AgentExplorer(model,configDict)
-
+    #agent = AgentExplorer(model,configDict)
+    agents = Agent(model,configDict)
     ## Ciclo de raciocínio do agente
     #agent.deliberate()
-    while agent.deliberate() != -1:
+    while agents.execute() != -1:
         model.draw()
-        #time.sleep(0.1) # para dar tempo de visualizar as movimentacoes do agente no labirinto
+        time.sleep(0.1) # para dar tempo de visualizar as movimentacoes do agente no labirinto
     model.draw()    
         
 if __name__ == '__main__':

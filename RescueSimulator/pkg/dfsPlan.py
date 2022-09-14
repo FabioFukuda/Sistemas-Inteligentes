@@ -112,6 +112,7 @@ class DFSPlan:
     def updateTimeLeft(self,time):
         if(time-1<self.estTime):
             self.state = 1
+        return self.state
 
     #Função para atualizar as adjacências entre os nós (posições) conhecidos.
     def upGraph(self):
@@ -124,8 +125,9 @@ class DFSPlan:
             curNode.add_neighbor(self.dictNode[dir[1]],dir[0])
 
     def upShortestWayBack(self):
-        self.path.clear()
-        self.path = self.a_star_algorithm(self.initialState,self.currentState)
+        if(self.state == 0):
+            self.path.clear()
+            self.path = self.a_star_algorithm(self.initialState,self.currentState)
 
     #Calcula o melhor caminho para voltar.    
     def a_star_algorithm(self,start,goal):
