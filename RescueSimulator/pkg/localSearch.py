@@ -50,7 +50,7 @@ class LocalSearch():
                     self.stateMesh
                 )
         self.localSearch(50,20)
-        
+
     def reversePath(self,path):
         revDir = {
             'N':'S',
@@ -71,18 +71,6 @@ class LocalSearch():
         v = list(range(len(self.victims)))
         solution = []
 
-        '''
-        while totCost<=ts and len(v)>0:
-            randVic = random.choice(v)
-            cost = self.victDist[(prevVic,randVic)][1]
-            if totCost+cost<ts:
-                totCost+=cost
-                solution.append(randVic)
-                v.remove(randVic)
-                prevVic = randVic
-            else:
-                return solution,totCost
-        '''
         while self.calcCostSolution(solution)<ts:
             randVic = random.choice(v)
             v.remove(randVic)
@@ -122,7 +110,7 @@ class LocalSearch():
         den = 4*self.model.getVictimsCondition()[0]+ 3*self.model.getVictimsCondition()[1] + 2*self.model.getVictimsCondition()[2] +self.model.getVictimsCondition()[3]
         return float(num)/den
     
-    def createNeighbours(self,solution:list,num,ts):
+    def createNeighbours(self,solution:list,num,ts,changes=1):
         neighbours = []
         
         if(len(solution) == len(self.victims)):
@@ -131,26 +119,36 @@ class LocalSearch():
         for i in range(num):
             vAux = list(range(len(self.victims)))
             vicNeighbours = [v for v in vAux if v not in solution]
+            for j in range(changes):
+                nFound =  False
+                if(len(solution)==0):
+                    new = random.choice(vicNeighbours)
+                    newNeighbour = []
+                    newNeighbour.append(new)
+                    vicNeighbours.remove(new)
+                else:
+                    rem = random.choice(solution)
+                    new = random.choice(vicNeighbours)
+            
+                    newNeighbour = deepcopy(solution)
+                    newNeighbour[newNeighbour.index(rem)] = new
+                    vicNeighbours.remove(new)
 
-            if(len(solution)==0):
-                new = random.choice(vicNeighbours)
-                newNeighbour = []
-                newNeighbour.append(new)
-            else:
-                rem = random.choice(solution)
-                new = random.choice(vicNeighbours)
-        
-                newNeighbour = deepcopy(solution)
-                newNeighbour[newNeighbour.index(rem)] = new
+                cost = self.calcCostSolution(newNeighbour) 
 
-            cost = self.calcCostSolution(newNeighbour) 
-            if cost<ts:
-                neighbours.append(newNeighbour)
+                if cost<ts and j==0:
+                    neighbours.append(newNeighbour)
+                    nFound = True
+                elif cost<ts:
+                    if(nFound):
+                        neighbours.pop()
+                    neighbours.append(newNeighbour)
+
         return neighbours
 
 
     def chooseBestNeighbours(self,solution:list,num,ts):
-        neighbours = self.createNeighbours(solution,num,ts)
+        neighbours = self.createNeighbours(solution,num,ts,1)
         neighbours.append(solution)
         eval = [self.evaluateSolution(solution) for solution in neighbours]
 
