@@ -1,3 +1,4 @@
+from copy import deepcopy
 from aStar import AStar
 import random
 
@@ -23,7 +24,7 @@ class LocalSearch():
                     self.stateMesh
                 )  
                 self.victDist[(v2,v1)] = self.reversePath(self.victDist[(v1,v2)][0]),self.victDist[(v1,v2)][1]
-        self.localSearch(150,20)
+        self.localSearch(50,20)
     def reversePath(self,path):
         revDir = {
             'N':'S',
@@ -60,11 +61,16 @@ class LocalSearch():
                 v.remove(randVic)
                 prevVic = randVic
             else:
-                return solution
+                return solution,totCost
 
-        return solution
+        return solution,totCost
+    def calcCostSolution(self,solution):
+        cost = 0
+        for i in range(len(solution)-1):
+            cost+=self.victDist[(solution[i],solution[i+1])][1]
+        return cost
 
-    def evaluateSolution(self,solution):
+    def evaluateSolution(self,solution:list):
         victiomsConditions = [0 for i in range(4)]
         for victim in solution:
             if self.victims[victim]['vit']<=0.25:
@@ -82,11 +88,58 @@ class LocalSearch():
         num = 4*victiomsConditions[0]+ 3*victiomsConditions[1] + 2*victiomsConditions[2] +victiomsConditions[3]
         den = 4*self.model.getVictimsCondition()[0]+ 3*self.model.getVictimsCondition()[1] + 2*self.model.getVictimsCondition()[2] +self.model.getVictimsCondition()[3]
         return float(num)/den
-    def localSearch(self,ts,k:int):
+    
+    def createNeighbours(self,solution:list,num,ts):
+        neighbours = []
+        
+        if(len(solution) == len(self.victims)):
+            return []
+
+        for i in range(num):
+            vAux = list(range(len(self.victims)))
+            vicNeighbours = [v for v in vAux if v not in solution]
+
+            rem = random.choice(solution)
+            new = random.choice(vicNeighbours)
+    
+            newNeighbour = deepcopy(solution)
+            newNeighbour[newNeighbour.index(rem)] = new
+
+            cost = self.calcCostSolution(newNeighbour) 
+            if cost<ts:
+                neighbours.append((newNeighbour,cost))
+        return neighbours
+
+
+    def chooseBestNeighbours(self,solution:tuple,num,ts):
+        neighbours = self.createNeighbours(solution[0],num,ts)
+        neighbours.append(solution)
+        eval = [self.evaluateSolution(solution[0]) for solution in neighbours]
+
+        bestEval = max(eval)
+        indexBest = eval.index(bestEval)
+
+        return neighbours[indexBest],bestEval
+
+    def localSearch(self,ts,num:int):
         solutions = []
         eval = []
-        for i in range(k):
+        for i in range(num):
             sol = self.createSolution(ts)
             solutions.append(sol)
-            eval.append(self.evaluateSolution(sol))
-        pass
+            eval.append(self.evaluateSolution(sol[0]))
+
+        for i in range(30):
+            for sol in range(len(solutions)):
+                bestNeighbour = self.chooseBestNeighbours(solutions[sol],num,ts)
+                solutions[sol] = bestNeighbour[0]
+                eval[sol] = bestNeighbour[1]
+
+        bestEval = max(eval)
+        indexBest = eval.index(bestEval)
+
+        bestSolutionPos = self.evaluateSolution([i for i in range(len(self.victims))])
+
+        print(f'Melhor Score Possível: {bestSolutionPos}, Score encontrada:{bestEval}')
+
+        return solutions[indexBest]
