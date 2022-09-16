@@ -1,4 +1,5 @@
 from copy import deepcopy
+from stateMesh import StateMesh
 from state import State
 
 class AStar():
@@ -16,8 +17,6 @@ class AStar():
             self.dir = ''
             #States até este nó. Serve para evitar com que nó já visitados sejam incluidos novamente.
             self.path = []
-            #APAGARR!!!!!
-            self.heur = 0
         
     dictCost = {
         'N':1,
@@ -40,8 +39,8 @@ class AStar():
             'SE': 'NO',
         }
 
-    #Calcula o melhor caminho para voltar.    
-    def a_star_algorithm(self,start,goal,stateMesh):
+    #Calcula o melhor caminho para voltar. Retorna uma lista com as direções da volta, e o tempo estimado.   
+    def a_star_algorithm(self,start:tuple,goal:tuple,stateMesh:StateMesh):
 
         #Estimativas de cada estado que estão na borda (State:estimativa)
         est = {}
@@ -105,26 +104,7 @@ class AStar():
                     est[newAStarState] = heur+newAStarState.cost
                     borderNodes[newAStarState] = state
                     minPathNode[state] = newAStarState.cost
-                    '''
-                    if(goal == State(18,20)):
-                        print(f'Nó a ser expandido, Heuristica:{newState.heur}, Estimativa:{newState.heur+newState.cost}')
-                        
-                        maze = [['.' for i in range(26)] for j in range(26)]
-                        maze[goal.row][goal.col] = 'A'
-                        maze[node.state.row][node.state.col] = 'X'
-                        for i in newState.path:
-                            maze[i.row][i.col] = 'X'
-                        for i in range(20):
-                            col = ""
-                            for j in range(25):
-                                col += f'{maze[i][j]} '
-                            col += str(i)
-                            print(col)
-                        e = ''
-                        for i in est.values():
-                            e+= str(i)+ ' '
-                        print(e)
-                '''
+
             curAStarState =  min(est, key=est.get)
             curPos = curAStarState.state
 

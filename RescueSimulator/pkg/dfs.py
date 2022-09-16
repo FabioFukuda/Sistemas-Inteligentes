@@ -6,7 +6,6 @@ class DFS:
 			self.parent = None
 			self.state = state
 			
-			
 	def __init__(self,prob = None):
 		self.prob = prob
 		self.stack = []

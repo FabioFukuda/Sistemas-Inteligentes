@@ -38,9 +38,6 @@ class DFSPlan:
         #Define o caminho de volta
         self.path = []
 
-        #Dict para acessar os nós (chave -> posição no mapa)
-        #self.dictNode = {}
-        #self.dictNode[(0,0)] = self.Node(self.currentState)
         self.stateMesh = stateMesh
         self.stateMesh.addNode(self.currentState)
         self.aStar = AStar()
@@ -73,10 +70,12 @@ class DFSPlan:
 
     #Função para atualizar as adjacências entre os nós (posições) conhecidos.
     def upGraph(self):
+        #Virifica todos os vizinhos já explorados do estado atual.
         posDir = self.posDirections(self.currentState)
         #Se não foi criado um nó para a posição atual:
         if (self.currentState.row,self.currentState.col) not in self.stateMesh:
             self.stateMesh.addNode(self.currentState)
+        #Adiciona os vizinhos no nó
         self.stateMesh.addNodeNeighbours(self.stateMesh.getNode((self.currentState.row,self.currentState.col)),posDir)
 
     def upShortestWayBack(self):
