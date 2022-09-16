@@ -29,8 +29,8 @@ class Vict_gen:
     def generatorVictims(self):
         self.generateWalls()
         qtdGen = 0
-        arq_gravidade = open(os.path.join(".", "gravidade.txt"), "r")
-        arq_tempo = open(os.path.join(".", "temposocorro.txt"), "r")
+        arq_gravidade = open(os.path.join("geradorVitimas", "gravidade.txt"), "r")
+        arq_tempo = open(os.path.join("geradorVitimas", "temposocorro.txt"), "r")
         while qtdGen < self.qtdVictims:
             pos = (random.randint(0, self.mazeSizeX-1), random.randint(0, self.mazeSizeY-1))
             if pos not in self.posVictims and (pos not in self.walls) and pos != (0,0):
@@ -71,7 +71,8 @@ class Vict_gen:
                 qtdGen += 1
                 
     def savePos(self):
-        arquivo = open(os.path.join(".", "new_ambiente.txt"), "w")
+        print(os.listdir())
+        arquivo = open(os.path.join("config_data", "new_ambiente.txt"), "w")
         strSave = "Agente 0,0\n"
         strSave += "Vitima"
         for i in self.posVictims:
@@ -84,7 +85,7 @@ class Vict_gen:
         print("gerou new ambiente.txt\n")
 
         strSave=""
-        sinaisvitais = open(os.path.join(".", "new_sinaisvitais.txt"), "w")
+        sinaisvitais = open(os.path.join("config_data", "new_sinaisvitais.txt"), "w")
         for i in self.vitalSignals:
             strSave += str(i[0]) + " " + str(i[1]) + " " + str(i[2]) + " " + str(i[3]) + " " + str(i[4]) + " " + str(i[5]) + "\n"
         sinaisvitais.writelines(strSave)
@@ -92,7 +93,7 @@ class Vict_gen:
         print("gerou new sinaisvitais.txt\n")
 
         strSave=""
-        difacesso = open(os.path.join(".", "new_difacesso.txt"), "w")
+        difacesso = open(os.path.join("config_data", "new_difacesso.txt"), "w")
         for i in self.diffAccess:
             strSave += str(i[0]) + " " + str(i[1]) + " " + str(i[2]) + " " + str(i[3]) + " " + str(i[4]) + " " + str(i[5]) + " " + str(i[6]) + "\n"
         difacesso.writelines(strSave)

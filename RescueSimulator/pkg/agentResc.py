@@ -8,7 +8,7 @@ from state import State
 from localSearch import LocalSearch
 
 class AgentResc:
-    def __init__(self,model,configDict,prob):
+    def __init__(self,model,configDict,prob,stateMesh):
         #guarda a instância de model para se movimentar (executeGo) e ler a posição atual.
         self.model = model
 
@@ -22,6 +22,7 @@ class AgentResc:
         ## Cria a instância do problema na mente do agente (sao suas crencas)
         self.prob = prob
 
+        self.stateMesh = stateMesh
         # O agente le sua posica no ambiente por meio do sensor
         initial = self.positionSensor()
         self.prob.defGoalState(-1,-1)
@@ -35,31 +36,23 @@ class AgentResc:
         ## Custo da solução
         self.costAll = 0
         
-        self.plan = LocalSearch(initial,self.prob)
-        
-        ## Adiciona o(s) planos a biblioteca de planos do agente
-        self.libPlan=[self.plan]
+        self.plan = LocalSearch(model,initial,self.prob,self.stateMesh)
 
         ## inicializa acao do ciclo anterior com o estado esperado
         self.previousAction = "nop"    ## nenhuma (no operation)
         self.expectedState = self.currentState
 
-        self.victims = {}
+        self.victims = []
 
     ## Metodo que define a deliberacao do agente 
     def deliberate(self):
-        ## Verifica se há algum plano a ser executado
-        if len(self.libPlan) == 0:
-            return -1   ## fim da execucao do agente, acabaram os planos
-        
-        self.plan = self.libPlan[0]
 
         print("\n*** Inicio do ciclo raciocinio ***")
         print("Pos agente no amb.: ", self.positionSensor())
 
         ## Redefine o estado atual do agente de acordo com o resultado da execução da ação do ciclo anterior
         self.currentState = self.positionSensor()
-        self.plan.updateCurrentState(self.currentState) # atualiza o current state no plano
+        #self.plan.updateCurrentState(self.currentState) # atualiza o current state no plano
 
         print("Ag cre que esta em: ", self.currentState)
 
@@ -72,30 +65,25 @@ class AgentResc:
 
         if victimId > 0:
             print ("vitima encontrada em ", self.currentState, " id: ", victimId, " sinais vitais: ", self.victimVitalSignalsSensor(victimId))
-            #print ("vitima encontrada em ", self.currentState, " id: ", victimId, " dif de acesso: ", self.victimDiffOfAcessSensor(victimId))  
+            print ("vitima encontrada em ", self.currentState, " id: ", victimId, " dif de acesso: ", self.victimDiffOfAcessSensor(victimId))  
             
 
         ## consome o tempo gasto
         self.tl -= self.prob.getActionCost(self.previousAction)
         
         print("Tempo disponivel: ", self.tl)
-        self.plan.updateTimeLeft(self.tl)
+        #self.plan.updateTimeLeft(self.tl)
 
         ## Verifica se atingiu o estado objetivo
         if self.prob.goalTest(self.currentState):
             print("!!! Objetivo atingido !!!")
-            del self.libPlan[0]  ## retira plano da biblioteca
             return 0
             
-        ## Define a proxima acao a ser executada
-        ## currentAction eh uma tupla na forma: <direcao>, <state>
-        result = self.plan.chooseAction()
-        print("Ag deliberou pela acao: ", result[0], " o estado resultado esperado é: ", result[1])
-
         ## Executa esse acao, atraves do metodo executeGo 
-        self.executeGo(result[0])
-        self.previousAction = result[0]
-        self.expectedState = result[1]       
+        #TODOO
+        #self.executeGo(result[0])
+        #self.previousAction = result[0]
+        #self.expectedState = result[1]       
         return 1
 
     ## Metodo que executa as acoes
@@ -146,4 +134,5 @@ class AgentResc:
         self.model.do(posAction, action)
 
     def setVictims(self,victims):
+        self.plan.calcMinVictimsDist(victims)
         self.victims = victims

@@ -7,8 +7,9 @@ sys.path.append('.')
 from victims_generator import Vict_gen
 
 def main():
+    print(os.listdir())
     # Lê arquivo config.txt
-    arq = open(os.path.join("..", "config_data","config.txt"),"r")
+    arq = open(os.path.join("config_data","config.txt"),"r")
     configDict = {} 
     for line in arq:
         ## O formato de cada linha é:var=valor

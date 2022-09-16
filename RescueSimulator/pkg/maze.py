@@ -37,6 +37,7 @@ class Maze:
         self.diffAccess = []
 
         self.numberOfVictims = 0 # conta contas vitimas foram colocadas no ambiente 
+        self.victiomsConditions = [0 for i in range(4)]
 
         ## A depender do tipo de malha, os parametros mudam
         if mesh == "square":
@@ -64,8 +65,8 @@ class Maze:
     def updateWalls(self):
        
         ## Metodo que atualiza a lista dos objetos (vitimas) que estao no labirinto
-        vs_file = open(os.path.join("config_data" ,"sinaisvitais.txt"),"r")
-        diff_file = open(os.path.join("config_data" ,"difacesso.txt"),"r")
+        vs_file = open(os.path.join("geradorVitimas" ,"new_sinaisvitais.txt"),"r")
+        diff_file = open(os.path.join("geradorVitimas" ,"new_difacesso.txt"),"r")
 
         ## Pega a matriz com todos os lugares (seja quadrado ou triangulo)
         aux = self.board.getListPlaces()
@@ -97,7 +98,21 @@ class Maze:
                         self.diffAccess[self.numberOfVictims-1].append(values)
                     else:
                         print("!!! warning: número de vítimas do ambiente maior do que número de dif. de acesso")
-
+        self.calcVictimsStats()
+    def calcVictimsStats(self):
+        for victim in self.vitalSignals:
+            if victim[0][-1]<=0.25:
+                self.victiomsConditions[0] +=1
+                continue
+            elif victim[0][-1]<=0.50:
+                self.victiomsConditions[1] +=1
+                continue
+            elif victim[0][-1]<=0.75:
+                self.victiomsConditions[2] +=1
+                continue
+            else:
+                self.victiomsConditions[3] +=1
+                continue
     ## Metodo que retorna a instancia criada da mesh
     def getBoard(self):
         return self.board

@@ -113,7 +113,7 @@ class AStar():
 
         estTime = curAStarState.cost
         path = []
-        while curAStarState!=None:
+        while curAStarState.parent!=None:
             path.append(curAStarState.dir)
             curAStarState = curAStarState.parent
         return path, estTime

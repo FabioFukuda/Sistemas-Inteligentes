@@ -4,7 +4,6 @@ import os
 ## Importa Classes necessarias para o funcionamento
 from model import Model
 from dfsPlan import DFSPlan
-from problem import Problem
 from state import State
 from random import randint
 from stateMesh import StateMesh
@@ -18,7 +17,7 @@ from planner import Planner
 
 ## Classe que define o Agente
 class AgentExplorer:
-    def __init__(self, model, configDict):
+    def __init__(self, model, configDict,prob,stateMesh):
         #guarda a instância de model para se movimentar (executeGo) e ler a posição atual.
         self.model = model
 
@@ -33,9 +32,9 @@ class AgentExplorer:
         self.mesh = self.model.mesh
  
         ## Cria a instância do problema na mente do agente (sao suas crencas)
-        self.prob = Problem()
+        self.prob = prob
 
-        self.stateMesh  = StateMesh()
+        self.stateMesh  = stateMesh
 
         # O agente le sua posica no ambiente por meio do sensor
         initial = self.positionSensor()
@@ -69,7 +68,9 @@ class AgentExplorer:
         self.previousAction = "nop"    ## nenhuma (no operation)
         self.expectedState = self.currentState
 
-        self.victims = {}
+        self.victims = []
+
+        self.victimsID = []
     ## Metodo que define a deliberacao do agente 
     def deliberate(self):
         ## Verifica se há algum plano a ser executado
@@ -101,10 +102,12 @@ class AgentExplorer:
         ## Verifica se tem vitima na posicao atual    
         victimId = self.victimPresenceSensor()
         if victimId > 0:
-            print ("vitima encontrada em ", self.currentState, " id: ", victimId, " sinais vitais: ", self.victimVitalSignalsSensor(victimId))
-            print ("vitima encontrada em ", self.currentState, " id: ", victimId, " dif de acesso: ", self.victimDiffOfAcessSensor(victimId))
-            self.tl-=2
-            self.victims[victimId] = self.currentState
+            if victimId not in self.victimsID:
+                print ("vitima encontrada em ", self.currentState, " id: ", victimId, " sinais vitais: ", self.victimVitalSignalsSensor(victimId))
+                print ("vitima encontrada em ", self.currentState, " id: ", victimId, " dif de acesso: ", self.victimDiffOfAcessSensor(victimId))
+                self.tl-=2
+                self.victims.append({'id':victimId,'pos':self.currentState,'vit':self.victimVitalSignalsSensor(victimId),'acc':self.victimDiffOfAcessSensor(victimId)})
+                self.victimsID.append(victimId)
 
         ## consome o tempo gasto
         self.tl -= self.prob.getActionCost(self.previousAction)
@@ -165,13 +168,13 @@ class AgentExplorer:
         """Simula um sensor que realiza a leitura dos sinais da vitima 
         @param o id da vítima
         @return a lista de sinais vitais (ou uma lista vazia se não tem vítima com o id)"""     
-        return self.model.getVictimVitalSignals(victimId)
+        return self.model.getVictimVitalSignals(victimId)[0][-1]
 
     def victimDiffOfAcessSensor(self, victimId):
         """Simula um sensor que realiza a leitura dos dados relativos à dificuldade de acesso a vítima
         @param o id da vítima
         @return a lista dos dados de dificuldade (ou uma lista vazia se não tem vítima com o id)"""     
-        return self.model.getDifficultyOfAcess(victimId)
+        return self.model.getDifficultyOfAcess(victimId)[0][-1]
     
     ## Metodo que atualiza a biblioteca de planos, de acordo com o estado atual do agente
     def updateLibPlan(self):

@@ -165,6 +165,14 @@ class Model:
 
         return []
 
+    def getVictimsCondition(self):
+        """ retorna os sinais vitais da vítima identificada pelo id
+        @param victimId é a posição da vítima dentro do vetor de sinais vitais
+        @return a lista de sinais vitais ou uma lista vazia caso a vítima nao exista
+        """
+
+        return self.maze.victiomsConditions
+ 
     def getDifficultyOfAcess(self, victimId):
         """ retorna os dados de dificuldade de acesso à vítima identificada pelo id
         @param victimId é a posição da vítima dentro do vetor de sinais vitais
