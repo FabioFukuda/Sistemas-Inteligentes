@@ -1,59 +1,9 @@
-from copy import deepcopy
 from random import randint
 from state import State
-import math
+from aStar import AStar
+from stateMesh import StateMesh
+
 class DFSPlan:
-
-    #Classe auxiliar que mantém as adjacências entre as posições exploradas (mantém as ações possíveis para cada posição).
-    class Node:
-        revDir = {
-            'N':'S',
-            'S': 'N',
-            'L': 'O',
-            'O': 'L',
-            'NE': 'SO',
-            'SO': 'NE',
-            'NO': 'SE',
-            'SE': 'NO',
-        }
-        def __init__(self,state):
-            #Vizinhos conhecidos de cada posição.
-            self.neighbors = {}
-            #Posição de cada nó.
-            self.state = state
-
-        def add_neighbor(self,node,dir):
-            self.neighbors[dir] = node
-            #Adiciona no nó vizinho este nó. Porém, se o vizinho está a Leste, o vizinho adiciona este nó a Oeste.
-            node.neighbors[self.revDir[dir]] = self
-
-    #Classe auxiliar para manter os estados explorados no algoritmo A*.
-    class AStarState:
-        def __init__(self,node):
-            #Encadeia os estados para a construção da solução.
-            self.parent = None
-            #Nó que o estado representa.
-            self.node = node
-            #Atributo auxiliar que mantém o custo até este nó durante a execução do A*.
-            self.cost = 0.0
-            #Direção do nó pai para este nó.
-            self.dir = ''
-            #States até este nó. Serve para evitar com que nó já visitados sejam incluidos novamente.
-            self.path = []
-            #APAGARR!!!!!
-            self.heur = 0
-
-            
-    dictCost = {
-        'N':1,
-        'S':1,
-        'L':1,
-        'O':1,
-        'NO':1.5,
-        'NE':1.5,
-        'SO':1.5,
-        'SE':1.5
-    }
     dictDir = {
         'N':(-1,0),
         'S':(1,0),
@@ -64,7 +14,7 @@ class DFSPlan:
         'SO':(1,-1),
         'SE':(1,1)
     }
-    def __init__(self, initialState, name = "none", mesh = "square",prob = None):
+    def __init__(self, initialState,stateMesh, name = "none" ,prob = None):
 
         self.walls = []
         self.initialState = initialState
@@ -78,9 +28,6 @@ class DFSPlan:
 
         #Guarda o caminho de volta.
         self.wayBack = None
-        #Dict para acessar os nós (chave -> posição no mapa)
-        self.dictNode = {}
-        self.dictNode[(0,0)] = self.Node(self.currentState)
 
         #Tempo estimado para volta
         self.estTime = 0
@@ -90,6 +37,13 @@ class DFSPlan:
 
         #Define o caminho de volta
         self.path = []
+
+        #Dict para acessar os nós (chave -> posição no mapa)
+        #self.dictNode = {}
+        #self.dictNode[(0,0)] = self.Node(self.currentState)
+        self.stateMesh = stateMesh
+        self.stateMesh.addNode(self.currentState)
+        self.aStar = AStar()
 
     def setWalls(self, walls):
         row = 0
@@ -107,10 +61,13 @@ class DFSPlan:
             self.nextAction = 'S'
         self.currentState = state
         self.upGraph()
-        self.upShortestWayBack()
+        if self.state == 0:
+            self.upShortestWayBack()
     
     def updateTimeLeft(self,time):
-        if(time-1<self.estTime):
+        ''' Verifica se dá tempo para o angente dar mais um passo. A condição time<=self.estTime+1.5 se justifica pois se o agente for
+        dar mais um passo, no pior caso o tempo estimado aumenta em 1.5 segundos.'''
+        if(time<=self.estTime+1.5):
             self.state = 1
         return self.state
 
@@ -118,122 +75,16 @@ class DFSPlan:
     def upGraph(self):
         posDir = self.posDirections(self.currentState)
         #Se não foi criado um nó para a posição atual:
-        if (self.currentState.row,self.currentState.col) not in self.dictNode:
-            self.dictNode[(self.currentState.row,self.currentState.col)] = self.Node(self.currentState)
-        curNode = self.dictNode[(self.currentState.row,self.currentState.col)]
-        for dir in posDir:
-            curNode.add_neighbor(self.dictNode[dir[1]],dir[0])
+        if (self.currentState.row,self.currentState.col) not in self.stateMesh:
+            self.stateMesh.addNode(self.currentState)
+        self.stateMesh.addNodeNeighbours(self.stateMesh.getNode((self.currentState.row,self.currentState.col)),posDir)
 
     def upShortestWayBack(self):
         if(self.state == 0):
             self.path.clear()
-            self.path = self.a_star_algorithm(self.initialState,self.currentState)
+            self.path ,self.estTime = self.aStar.a_star_algorithm((self.initialState.row,self.initialState.col),
+            (self.currentState.row,self.currentState.col),self.stateMesh)
 
-    #Calcula o melhor caminho para voltar.    
-    def a_star_algorithm(self,start,goal):
-
-        #Estimativas de cada estado que estão na borda (State:estimativa)
-        est = {}
-        #goal = self.initialState
-        curNode = self.dictNode[(start.row,start.col)]
-
-        #Cria um estado inicial para o algoritmo A*.
-        curState = self.AStarState(curNode)
-
-        minPathNode = {}
-        borderNodes = {}
-
-        minPathNode[curNode] = 0
-
-        for dir,node in curNode.neighbors.items():
-            heur = self.calcHeuristic(node.state,goal)
-            cost = self.dictCost[dir]
-
-            newState = self.AStarState(node)
-            newState.parent = curState
-            newState.cost = cost
-            newState.dir = self.Node.revDir[dir]
-            newState.path.append(curNode.state)
-            est[newState] = heur+cost
-
-            minPathNode[node] = cost
-            borderNodes[newState] = node
-        if len(est) == 0:
-            return []
-
-        #Pega o estado com a menor estimativa na borda.
-        curState =  min(est, key=est.get)
-        curNode = curState.node
-        
-        del est[curState]
-
-        while(curNode.state!=goal):
-            for dir,node in curNode.neighbors.items():
-                #Se o estado já foi descoberto nesse ramo (evita loops).
-                if node.state not in curState.path:
-                    heur = self.calcHeuristic(node.state,goal)
-
-                    newState = self.AStarState(node)
-                    newState.parent = curState
-                    newState.cost = self.dictCost[dir]+curState.cost
-                    newState.heur=heur
-                    newState.dir = self.Node.revDir[dir]
-                    #Cada estado mantém o caminho até ele
-                    newState.path = deepcopy(curState.path)
-                    newState.path.append(curNode.state)
-                 
-                    if node in minPathNode.keys():
-                        if newState.cost>minPathNode[node]:
-                            continue
-                        else:
-                            if node in borderNodes.values():
-                                state = list(borderNodes.keys())[list(borderNodes.values()).index(node)]
-                                del borderNodes[state]
-                                del est[state]
-                                 
-                    est[newState] = heur+newState.cost
-                    borderNodes[newState] = node
-                    minPathNode[node] = newState.cost
-                    '''
-                    if(goal == State(18,20)):
-                        print(f'Nó a ser expandido, Heuristica:{newState.heur}, Estimativa:{newState.heur+newState.cost}')
-                        
-                        maze = [['.' for i in range(26)] for j in range(26)]
-                        maze[goal.row][goal.col] = 'A'
-                        maze[node.state.row][node.state.col] = 'X'
-                        for i in newState.path:
-                            maze[i.row][i.col] = 'X'
-                        for i in range(20):
-                            col = ""
-                            for j in range(25):
-                                col += f'{maze[i][j]} '
-                            col += str(i)
-                            print(col)
-                        e = ''
-                        for i in est.values():
-                            e+= str(i)+ ' '
-                        print(e)
-                '''
-            curState =  min(est, key=est.get)
-            curNode = curState.node
-
-            del est[curState]
-            del borderNodes[curState]
-
-        self.estTime = curState.cost
-        path = []
-        while curState!=None:
-            path.append(curState.dir)
-            curState = curState.parent
-        return path
-
-    def calcHeuristic(self,state1,state2):
-        difR = abs(state1.row-state2.row)
-        difC = abs(state1.col-state2.col)
-        if(difR>difC):
-            return 1.5*(difC) + (difR-difC) 
-        else:
-            return 1.5*(difR) + (difC-difR) 
 
     #Direções que o agente pode ir de acordo com a sua crença do mapa.
     def posDirections(self,state):
@@ -286,40 +137,3 @@ class DFSPlan:
         nextMove = self.move()
         return (nextMove[1], self.goalPos == State(nextMove[0][0], nextMove[0][1]))   
 
-
-#Fonte: https://stackoverflow.com/questions/3387691/how-to-perfectly-override-a-dict
-from collections.abc import MutableMapping
-class TransformedDict(MutableMapping):
-    """A dictionary that applies an arbitrary key-altering
-       function before accessing the keys"""
-
-    def __init__(self, *args, **kwargs):
-        self.store = dict()
-        self.update(dict(*args, **kwargs))  # use the free update to set keys
-
-    def __getitem__(self, key):
-        if type(key) == tuple:
-            return self.store[self._keytransform(key)]
-        elif type(key) == StraightPathPlan.Node:
-            return self.sotre[(key.state.row,key.state.col)]
-
-    def __setitem__(self, key, value):
-        self.store[self._keytransform(key)] = value
-
-    def __delitem__(self, key):
-        del self.store[self._keytransform(key)]
-
-    def __iter__(self):
-        return iter(self.store)
-    
-    def __len__(self):
-        return len(self.store)
-
-    def _keytransform(self, key):
-        return key     
-
-
-        
-       
-        
-        

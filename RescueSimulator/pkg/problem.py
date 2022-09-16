@@ -20,7 +20,6 @@ class Problem:
         """mazeBelief = 0 -> caminho desconhecido
            mazeBelief = 1 -> caminho sem parede
            mazeBelief = - -> parede"""
-        
         """
         A linha/coluna de índices 0 representam paredes. 
         """
@@ -42,6 +41,7 @@ class Problem:
     def setWall(self,row,col):
         #[row+1][col+1] porque as linhas/colunas de índice 0 representam paredes.
         self.mazeBelief[row+1][col+1] = -1
+        
     def setPath(self,row,col):
         self.mazeBelief[row+1][col+1] = 1
 

@@ -28,3 +28,4 @@ class State:
     def __sub__(self,other):
         self.row -= other.row
         self.col -= other.col
+        

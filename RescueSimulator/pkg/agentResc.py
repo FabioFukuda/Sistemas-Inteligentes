@@ -3,64 +3,39 @@ import os
 
 ## Importa Classes necessarias para o funcionamento
 from model import Model
-from dfsPlan import DFSPlan
 from problem import Problem
 from state import State
-from random import randint
-from stateMesh import StateMesh
+from localSearch import LocalSearch
 
-## Importa o algoritmo para o plano
-from randomPlan import RandomPlan
-
-##Importa o Planner
-sys.path.append(os.path.join("pkg", "planner"))
-from planner import Planner
-
-## Classe que define o Agente
-class AgentExplorer:
-    def __init__(self, model, configDict):
+class AgentResc:
+    def __init__(self,model,configDict,prob):
         #guarda a instância de model para se movimentar (executeGo) e ler a posição atual.
         self.model = model
 
-        #Estado : procurando vítimas (searching) ou voltando (returning)
-        self.state = "searching"
-
         ## Obtem o tempo que tem para executar
-        self.tl = configDict["Tl"]
+        self.tl = configDict["Ts"]
         print("Tempo disponivel: ", self.tl)
         
         ## Pega o tipo de mesh, que está no model (influência na movimentação)
         self.mesh = self.model.mesh
  
         ## Cria a instância do problema na mente do agente (sao suas crencas)
-        self.prob = Problem()
-
-        self.stateMesh  = StateMesh()
+        self.prob = prob
 
         # O agente le sua posica no ambiente por meio do sensor
         initial = self.positionSensor()
-        self.prob.defInitialState(initial.row, initial.col)
         self.prob.defGoalState(-1,-1)
         print("*** Estado inicial do agente: ", self.prob.initialState)
         
         # Define o estado atual do agente = estado inicial
         self.currentState = self.prob.initialState
 
-        # Inicializa uma crença do labirinto que o agente possui. Isto é, ele sabe que o tamanho do mapa é no mínimo 
-        # tão grande quanto a sua posição inicial.
-        self.prob.createMaze(self.currentState.row+1,self.currentState.col+1)
-
         #print("*** Objetivo do agente: ", self.prob.goalState)
-        print("*** Total de vitimas existentes no ambiente: ", self.model.getNumberOfVictims())
-
-        """
-        DEFINE OS PLANOS DE EXECUÇÃO DO AGENTE
-        """
         
         ## Custo da solução
         self.costAll = 0
         
-        self.plan = DFSPlan(initial,self.stateMesh, self.mesh,self.prob)
+        self.plan = LocalSearch(initial,self.prob)
         
         ## Adiciona o(s) planos a biblioteca de planos do agente
         self.libPlan=[self.plan]
@@ -70,6 +45,7 @@ class AgentExplorer:
         self.expectedState = self.currentState
 
         self.victims = {}
+
     ## Metodo que define a deliberacao do agente 
     def deliberate(self):
         ## Verifica se há algum plano a ser executado
@@ -87,33 +63,23 @@ class AgentExplorer:
 
         print("Ag cre que esta em: ", self.currentState)
 
-        ## Verifica se a execução do acao do ciclo anterior funcionou ou nao
-        if not (self.currentState == self.expectedState):
-            print("---> erro na execucao da acao ", self.previousAction, ": esperava estar em ", self.expectedState, ", mas estou em ", self.currentState)
-            self.prob.setWall(self.expectedState.row,self.expectedState.col)
-        else:
-            self.prob.setPath(self.currentState.row,self.currentState.col)
-
         ## Funcionou ou nao, vou somar o custo da acao com o total 
         self.costAll += self.prob.getActionCost(self.previousAction)
         print ("Custo até o momento (com a ação escolhida):", self.costAll) 
 
         ## Verifica se tem vitima na posicao atual    
         victimId = self.victimPresenceSensor()
+
         if victimId > 0:
             print ("vitima encontrada em ", self.currentState, " id: ", victimId, " sinais vitais: ", self.victimVitalSignalsSensor(victimId))
-            print ("vitima encontrada em ", self.currentState, " id: ", victimId, " dif de acesso: ", self.victimDiffOfAcessSensor(victimId))
-            self.tl-=2
-            self.victims[victimId] = self.currentState
+            #print ("vitima encontrada em ", self.currentState, " id: ", victimId, " dif de acesso: ", self.victimDiffOfAcessSensor(victimId))  
+            
 
         ## consome o tempo gasto
         self.tl -= self.prob.getActionCost(self.previousAction)
         
         print("Tempo disponivel: ", self.tl)
-        state = self.plan.updateTimeLeft(self.tl)
-        if (state == 1 and self.state == 'searching'):
-            self.state = 'returning'
-            self.prob.defGoalState(self.prob.initialState.row,self.prob.initialState.col) 
+        self.plan.updateTimeLeft(self.tl)
 
         ## Verifica se atingiu o estado objetivo
         if self.prob.goalTest(self.currentState):
@@ -130,8 +96,6 @@ class AgentExplorer:
         self.executeGo(result[0])
         self.previousAction = result[0]
         self.expectedState = result[1]       
-        self.prob.updateMazeBelief(self.expectedState.row,self.expectedState.col)
-        #self.prob.printMazeBelief()
         return 1
 
     ## Metodo que executa as acoes
@@ -181,5 +145,5 @@ class AgentExplorer:
     def actionDo(self, posAction, action = True):
         self.model.do(posAction, action)
 
-    def getVictims(self):
-        return self.victims
+    def setVictims(self,victims):
+        self.victims = victims
