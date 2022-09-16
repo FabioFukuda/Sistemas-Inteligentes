@@ -55,7 +55,6 @@ def main():
     ## Ciclo de raciocínio do agente
     #agent.deliberate()
     while agents.execute() != -1:
-        pass
         model.draw()
         #time.sleep(0.1) # para dar tempo de visualizar as movimentacoes do agente no labirinto
     model.draw()    

@@ -9,6 +9,11 @@ class Agent():
         self.prob = Problem()
         self.stateMesh = StateMesh()
         self.agentExp = AgentExplorer(model,configDict,self.prob,self.stateMesh)
+
+        '''
+        TESTE!!!!!!!!!!!!
+        '''
+        
         self.agentResc = AgentResc(model,configDict,self.prob,self.stateMesh)
         self.agent = self.agentExp
 
