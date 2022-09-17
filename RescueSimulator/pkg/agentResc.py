@@ -5,7 +5,7 @@ import os
 from model import Model
 from problem import Problem
 from state import State
-from localSearch import LocalSearch
+from rescuePlan import RescuePlan
 
 class AgentResc:
     def __init__(self,model,configDict,prob,stateMesh):
@@ -13,8 +13,8 @@ class AgentResc:
         self.model = model
 
         ## Obtem o tempo que tem para executar
-        self.tl = configDict["Ts"]
-        print("Tempo disponivel: ", self.tl)
+        self.ts = configDict["Ts"]
+        print("Tempo disponivel: ", self.ts)
         
         ## Pega o tipo de mesh, que está no model (influência na movimentação)
         self.mesh = self.model.mesh
@@ -25,7 +25,7 @@ class AgentResc:
         self.stateMesh = stateMesh
         # O agente le sua posica no ambiente por meio do sensor
         initial = self.positionSensor()
-        self.prob.defGoalState(-1,-1)
+        self.prob.defInitialState(initial.row, initial.col)
         print("*** Estado inicial do agente: ", self.prob.initialState)
         
         # Define o estado atual do agente = estado inicial
@@ -36,13 +36,18 @@ class AgentResc:
         ## Custo da solução
         self.costAll = 0
         
-        self.plan = LocalSearch(model,initial,self.prob,self.stateMesh)
+        self.plan = RescuePlan(model,initial,self.stateMesh,self.prob)
 
         ## inicializa acao do ciclo anterior com o estado esperado
         self.previousAction = "nop"    ## nenhuma (no operation)
         self.expectedState = self.currentState
 
         self.victims = []
+        self.rescVict = []
+        
+    def elaboratePlan(self):
+        
+        self.plan.calcPath(self.ts,self.victims)
 
     ## Metodo que define a deliberacao do agente 
     def deliberate(self):
@@ -63,27 +68,27 @@ class AgentResc:
         ## Verifica se tem vitima na posicao atual    
         victimId = self.victimPresenceSensor()
 
-        if victimId > 0:
+        if victimId > 0 and victimId not in self.rescVict:
             print ("vitima encontrada em ", self.currentState, " id: ", victimId, " sinais vitais: ", self.victimVitalSignalsSensor(victimId))
             print ("vitima encontrada em ", self.currentState, " id: ", victimId, " dif de acesso: ", self.victimDiffOfAcessSensor(victimId))  
+            self.rescVict.append(victimId)
             
-
         ## consome o tempo gasto
-        self.tl -= self.prob.getActionCost(self.previousAction)
+        self.ts -= self.prob.getActionCost(self.previousAction)
         
-        print("Tempo disponivel: ", self.tl)
+        print("Tempo disponivel: ", self.ts)
         #self.plan.updateTimeLeft(self.tl)
-
-        ## Verifica se atingiu o estado objetivo
-        if self.prob.goalTest(self.currentState):
-            print("!!! Objetivo atingido !!!")
-            return 0
-            
-        ## Executa esse acao, atraves do metodo executeGo 
-        #TODOO
-        #self.executeGo(result[0])
-        #self.previousAction = result[0]
-        #self.expectedState = result[1]       
+        
+        result = self.plan.chooseAction()
+        print("Ag deliberou pela acao: ", result[0], " o estado resultado esperado é: ", result[1])
+        
+        if(result[0]=='nop'):
+            print("!!! Fim do plano !!!")
+            return -1
+        
+        self.executeGo(result[0])
+        self.previousAction = result[0]
+        self.expectedState = result[1]       
         return 1
 
     ## Metodo que executa as acoes
@@ -134,5 +139,4 @@ class AgentResc:
         self.model.do(posAction, action)
 
     def setVictims(self,victims):
-        self.plan.calcMinVictimsDist(victims)
         self.victims = victims

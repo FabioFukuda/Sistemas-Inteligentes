@@ -9,20 +9,18 @@ class Agent():
         self.prob = Problem()
         self.stateMesh = StateMesh()
         self.agentExp = AgentExplorer(model,configDict,self.prob,self.stateMesh)
-
-        '''
-        TESTE!!!!!!!!!!!!
-        '''
-        
         self.agentResc = AgentResc(model,configDict,self.prob,self.stateMesh)
         self.agent = self.agentExp
+        self.curAgent = 'exp'
 
     def execute(self):
         state = self.agent.deliberate()
 
-        if state == 0:
+        if state == 0 and self.curAgent=='exp':
             self.agentResc.setVictims(self.agentExp.getVictims())
-            
+            self.agentResc.elaboratePlan()
+            self.agentResc.deliberate()
             self.agent = self.agentResc
+            self.curAgent = 'resc'
 
         return state

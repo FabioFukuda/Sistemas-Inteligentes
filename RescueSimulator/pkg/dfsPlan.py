@@ -81,8 +81,8 @@ class DFSPlan:
     def upShortestWayBack(self):
         if(self.state == 0):
             self.path.clear()
-            self.path ,self.estTime = self.aStar.a_star_algorithm((self.initialState.row,self.initialState.col),
-            (self.currentState.row,self.currentState.col),self.stateMesh)
+            self.path ,self.estTime = self.aStar.a_star_algorithm((self.currentState.row,self.currentState.col),
+            (self.initialState.row,self.initialState.col),self.stateMesh)
 
 
     #Direções que o agente pode ir de acordo com a sua crença do mapa.

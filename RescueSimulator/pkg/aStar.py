@@ -40,7 +40,7 @@ class AStar():
         }
 
     #Calcula o melhor caminho para voltar. Retorna uma lista com as direções da volta, e o tempo estimado.   
-    def a_star_algorithm(self,start:tuple,goal:tuple,stateMesh:StateMesh):
+    def a_star_algorithm(self,goal:tuple,start:tuple,stateMesh:StateMesh):
 
         #Estimativas de cada estado que estão na borda (State:estimativa)
         est = {}
