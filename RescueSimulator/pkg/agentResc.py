@@ -76,7 +76,7 @@ class AgentResc:
         ## consome o tempo gasto
         self.ts -= self.prob.getActionCost(self.previousAction)
         
-        #print("Tempo disponivel: ", self.ts)
+        print("Tempo disponivel: ", self.ts)
         #self.plan.updateTimeLeft(self.tl)
         
         result = self.plan.chooseAction()

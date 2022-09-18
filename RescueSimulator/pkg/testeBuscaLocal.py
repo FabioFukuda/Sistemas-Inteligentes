@@ -33,8 +33,8 @@ class TesteBuscaLocal():
 
     def execute(self):
         numVitimas = 10
-        numMinIt = 0
-        numMaxIt = 50
+        numMinIt = 90
+        numMaxIt = 100
         numVizinhos = 20
         ts = 100
 
@@ -53,7 +53,7 @@ class TesteBuscaLocal():
             local.victims = chosenV
 
             start_time = time.time()
-            eval = local.localSearch(ts,numVizinhos,i)
+            eval = local.localSearch(ts,numVizinhos,i,True)
             timeDif = time.time() - start_time
 
             dados['numIt'].append(i)
@@ -65,6 +65,7 @@ class TesteBuscaLocal():
         
         plt.scatter(x=dataFrame['numIt'],y=dataFrame['score'])
         plt.savefig(path)
+        
         return -1
 
     def randomVictims(self,numVict):

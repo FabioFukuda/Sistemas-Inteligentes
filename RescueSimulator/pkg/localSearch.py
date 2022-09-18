@@ -88,8 +88,8 @@ class LocalSearch():
 
         for i in range(len(solution)-1):
             cost+=self.victDist[(solution[i],solution[i+1])][1]
-        cost+=self.victDist[(solution[-1],-1)][1] + self.victDist[(-1,solution[-1])][1]
-        
+        cost+=self.victDist[(solution[-1],-1)][1]
+        cost+=self.victDist[(-1,solution[0])][1]
         return cost
 
     def evaluateSolution(self,solution:list):
@@ -143,18 +143,37 @@ class LocalSearch():
         for neighbour in neighbours:
             if(len(neighbour)<=1):
                 continue
-            newNeighbour = deepcopy(neighbour)
-            randVict = random.sample(list(range(len(newNeighbour))),2)
-            newNeighbour[randVict[0]],newNeighbour[randVict[1]] = newNeighbour[randVict[1]],newNeighbour[randVict[0]]
-            if self.calcCostSolution(newNeighbour)<=ts:
-                newNeighbours.append(newNeighbour)  
+            numSwap = int(len(neighbour)/10)+1
+            for swap in range(numSwap):
+                newNeighbour = deepcopy(neighbour)
+                randVict = random.sample(list(range(len(newNeighbour))),2)
+                newNeighbour[randVict[0]],newNeighbour[randVict[1]] = newNeighbour[randVict[1]],newNeighbour[randVict[0]]
+                if self.calcCostSolution(newNeighbour)<=ts:
+                    newNeighbours.append(newNeighbour)  
         neighbours+=newNeighbours
 
+    def addVictim(self,neighbours,ts):
+        for n in range(len(neighbours)):
+            vAux = list(range(len(self.victims)))
+            vicNeighbours = [v for v in vAux if v not in neighbours[n]]
+            while len(vicNeighbours)>0:
+                newNeighbour = deepcopy(neighbours[n])
+                
+                new = random.choice(vicNeighbours)
+                newNeighbour.append(new)
+                vicNeighbours.remove(new)
+
+                if self.calcCostSolution(newNeighbour)<=ts:
+                    neighbours[n] = newNeighbour
+                    break
+
     def chooseBestNeighbours(self,solution:list,num,ts,numSwap = 1):
+
         neighbours = self.createNeighbours(solution,num,ts)
         neighbours.append(solution)
         for i in range(numSwap):
             self.swapNeighbours(neighbours,ts)
+        self.addVictim(neighbours,ts)
 
         eval = [self.evaluateSolution(solution) for solution in neighbours]
         cost = [self.calcCostSolution(solution) for solution in neighbours]
@@ -173,10 +192,21 @@ class LocalSearch():
 
         return neighbours[indexBest],maxEval
 
-    def localSearch(self,ts,num:int=20,numIt=100):
+    def localSearch(self,ts,num:int=20,numIt=100,test=False):
         solutions = []
         eval = []
         cost = []
+        dictCost = {
+        'N':1,
+        'S':1,
+        'L':1,
+        'O':1,
+        'NO':1.5,
+        'NE':1.5,
+        'SO':1.5,
+        'SE':1.5
+          }
+
         for i in range(num):
             sol = self.createSolution(ts,cost)
             solutions.append(sol)
@@ -188,6 +218,8 @@ class LocalSearch():
                 bestNeighbour = self.chooseBestNeighbours(solutions[sol],num,ts,5)
                 solutions[sol] = bestNeighbour[0]
                 eval[sol] = bestNeighbour[1]
+                cost[sol] = self.calcCostSolution(solutions[sol])
+
             print(f'{i/n*100:.2f}%',end="\r")
 
         #bestEval = max(eval)
@@ -204,12 +236,11 @@ class LocalSearch():
                 minCost = cost[e]
 
         path = self.createPath(solutions[indexBest])
-
-        ''''
-            return maxEval para testes!!!
-        '''
-        #return maxEval
+        if test:
+            return maxEval
+        
         return path
+
     def createPath(self,solution):
         if(len(solution)==0):
             return ''
