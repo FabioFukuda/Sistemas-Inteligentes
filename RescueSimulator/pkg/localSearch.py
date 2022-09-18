@@ -168,7 +168,7 @@ class LocalSearch():
                 indexBest = e
                 minCost = cost[e]
 
-        return neighbours[indexBest],bestEval
+        return neighbours[indexBest],maxEval
 
     def localSearch(self,ts,num:int):
         solutions = []
