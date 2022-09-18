@@ -52,18 +52,18 @@ class AgentResc:
     ## Metodo que define a deliberacao do agente 
     def deliberate(self):
 
-        print("\n*** Inicio do ciclo raciocinio ***")
-        print("Pos agente no amb.: ", self.positionSensor())
+        #print("\n*** Inicio do ciclo raciocinio ***")
+        #print("Pos agente no amb.: ", self.positionSensor())
 
         ## Redefine o estado atual do agente de acordo com o resultado da execução da ação do ciclo anterior
         self.currentState = self.positionSensor()
         #self.plan.updateCurrentState(self.currentState) # atualiza o current state no plano
 
-        print("Ag cre que esta em: ", self.currentState)
+        #print("Ag cre que esta em: ", self.currentState)
 
         ## Funcionou ou nao, vou somar o custo da acao com o total 
         self.costAll += self.prob.getActionCost(self.previousAction)
-        print ("Custo até o momento (com a ação escolhida):", self.costAll) 
+        #print ("Custo até o momento (com a ação escolhida):", self.costAll) 
 
         ## Verifica se tem vitima na posicao atual    
         victimId = self.victimPresenceSensor()
@@ -76,11 +76,11 @@ class AgentResc:
         ## consome o tempo gasto
         self.ts -= self.prob.getActionCost(self.previousAction)
         
-        print("Tempo disponivel: ", self.ts)
+        #print("Tempo disponivel: ", self.ts)
         #self.plan.updateTimeLeft(self.tl)
         
         result = self.plan.chooseAction()
-        print("Ag deliberou pela acao: ", result[0], " o estado resultado esperado é: ", result[1])
+        #print("Ag deliberou pela acao: ", result[0], " o estado resultado esperado é: ", result[1])
         
         if(result[0]=='nop'):
             print("!!! Fim do plano !!!")

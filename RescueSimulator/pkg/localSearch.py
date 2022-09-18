@@ -66,17 +66,17 @@ class LocalSearch():
             revP.append(revDir[p])
         return list(reversed(revP))
         
-    def createSolution(self,ts):
+    def createSolution(self,ts,cost:list=None):
         v = list(range(len(self.victims)))
         solution = []
 
-        while self.calcCostSolution(solution)<ts and len(v)>0:
+        while self.calcCostSolution(solution)<=ts and len(v)>0:
             randVic = random.choice(v)
             v.remove(randVic)
             solution.append(randVic)       
 
         solution.pop()
-
+        cost.append(self.calcCostSolution(solution))
         return solution
 
     def calcCostSolution(self,solution):
@@ -136,38 +136,71 @@ class LocalSearch():
                 neighbours.append(newNeighbour)
 
         return neighbours
-
+    def swapNeighbours(self,neighbours,ts):
+        newNeighbours = []
+        for neighbour in neighbours:
+            if(len(neighbour)==1):
+                continue
+            newNeighbour = deepcopy(neighbour)
+            randVict = random.sample(list(range(len(newNeighbour))),2)
+            newNeighbour[randVict[0]],newNeighbour[randVict[1]] = newNeighbour[randVict[1]],newNeighbour[randVict[0]]
+            if self.calcCostSolution(newNeighbour)<=ts:
+                newNeighbours.append(newNeighbour)  
+        neighbours+=newNeighbours
 
     def chooseBestNeighbours(self,solution:list,num,ts):
         neighbours = self.createNeighbours(solution,num,ts)
         neighbours.append(solution)
-        eval = [self.evaluateSolution(solution) for solution in neighbours]
+        self.swapNeighbours(neighbours,ts)
 
-        bestEval = max(eval)
-        indexBest = eval.index(bestEval)
+        eval = [self.evaluateSolution(solution) for solution in neighbours]
+        cost = [self.calcCostSolution(solution) for solution in neighbours]
+
+        #bestEval = max(eval)
+        #indexBest = eval.index(bestEval)
+        maxEval = max(eval)
+        bestEval = [i for i,v in enumerate(eval) if v == maxEval]
+        
+        minCost = cost[bestEval[0]]
+        indexBest = 0
+        for e in bestEval:
+            if cost[e]<minCost:
+                indexBest = e
+                minCost = cost[e]
 
         return neighbours[indexBest],bestEval
 
     def localSearch(self,ts,num:int):
         solutions = []
         eval = []
+        cost = []
         for i in range(num):
-            sol = self.createSolution(ts)
+            sol = self.createSolution(ts,cost)
             solutions.append(sol)
             eval.append(self.evaluateSolution(sol))
-
-        for i in range(100):
+        n = 500
+        print('Calculando Trajetória...')
+        for i in range(n):
             for sol in range(len(solutions)):
                 bestNeighbour = self.chooseBestNeighbours(solutions[sol],num,ts)
                 solutions[sol] = bestNeighbour[0]
                 eval[sol] = bestNeighbour[1]
-
-        bestEval = max(eval)
-        indexBest = eval.index(bestEval)
+            print(f'{i/n*100:.2f}%',end="\r")
+        #bestEval = max(eval)
+        #indexBest = eval.index(bestEval)
+        maxEval = max(eval)
+        bestEval = [i for i,v in enumerate(eval) if v == maxEval]
+        
+        minCost = cost[bestEval[0]]
+        indexBest = 0
+        for e in bestEval:
+            if cost[e]<minCost:
+                indexBest = e
+                minCost = cost[e]
 
         bestSolutionPos = self.evaluateSolution([i for i in range(len(self.victims))])
 
-        print(f'Melhor Score Possível: {bestSolutionPos}, Score encontrada:{bestEval}')
+        print(f'Melhor Score Possível: {bestSolutionPos}, Score encontrada:{indexBest}')
 
         path = self.createPath(solutions[indexBest])
         return path
