@@ -32,8 +32,6 @@ class LocalSearch():
                     self.stateMesh
                 ) 
             for v2 in range(v1+1,len(victims)):
-                if v1==0 and v2 == 1:
-                    print('PARAAA')
                 self.victDist[(v1,v2)] = self.aStar.a_star_algorithm(
                     (victims[v1]['pos'].row,victims[v1]['pos'].col),
                     (victims[v2]['pos'].row,victims[v2]['pos'].col),
@@ -42,13 +40,13 @@ class LocalSearch():
                 self.victDist[(v2,v1)] = self.reversePath(self.victDist[(v1,v2)][0]),self.victDist[(v1,v2)][1]
 
         self.victDist[(len(victims)-1,-1)] = self.aStar.a_star_algorithm(
-                    (victims[v1]['pos'].row,victims[v1]['pos'].col),
+                    (victims[len(victims)-1]['pos'].row,victims[len(victims)-1]['pos'].col),
                     (self.initialState.row,self.initialState.col),
                     self.stateMesh
                 )
         self.victDist[(-1,len(victims)-1)] = self.aStar.a_star_algorithm(
                     (self.initialState.row,self.initialState.col),
-                    (victims[v1]['pos'].row,victims[v1]['pos'].col),
+                    (victims[len(victims)-1]['pos'].row,victims[len(victims)-1]['pos'].col),
                     self.stateMesh
         )
 

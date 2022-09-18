@@ -57,7 +57,7 @@ def main():
     #agent.deliberate()
     while agents.execute() != -1:
         model.draw()
-        time.sleep(0.1) # para dar tempo de visualizar as movimentacoes do agente no labirinto
+        #time.sleep(0.1) # para dar tempo de visualizar as movimentacoes do agente no labirinto
     model.draw()    
         
 if __name__ == '__main__':
