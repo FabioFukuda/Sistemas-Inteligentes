@@ -136,8 +136,8 @@ class LocalSearch():
 
             if cost<ts:
                 neighbours.append(newNeighbour)
-
         return neighbours
+        
     def swapNeighbours(self,neighbours,ts):
         newNeighbours = []
         for neighbour in neighbours:
@@ -150,10 +150,11 @@ class LocalSearch():
                 newNeighbours.append(newNeighbour)  
         neighbours+=newNeighbours
 
-    def chooseBestNeighbours(self,solution:list,num,ts):
+    def chooseBestNeighbours(self,solution:list,num,ts,numSwap = 1):
         neighbours = self.createNeighbours(solution,num,ts)
         neighbours.append(solution)
-        self.swapNeighbours(neighbours,ts)
+        for i in range(numSwap):
+            self.swapNeighbours(neighbours,ts)
 
         eval = [self.evaluateSolution(solution) for solution in neighbours]
         cost = [self.calcCostSolution(solution) for solution in neighbours]
@@ -172,7 +173,7 @@ class LocalSearch():
 
         return neighbours[indexBest],maxEval
 
-    def localSearch(self,ts,num:int):
+    def localSearch(self,ts,num:int=20,numIt=100):
         solutions = []
         eval = []
         cost = []
@@ -180,16 +181,18 @@ class LocalSearch():
             sol = self.createSolution(ts,cost)
             solutions.append(sol)
             eval.append(self.evaluateSolution(sol))
-        n = 500
+        n = numIt
         print('Calculando Trajetória...')
         for i in range(n):
             for sol in range(len(solutions)):
-                bestNeighbour = self.chooseBestNeighbours(solutions[sol],num,ts)
+                bestNeighbour = self.chooseBestNeighbours(solutions[sol],num,ts,5)
                 solutions[sol] = bestNeighbour[0]
                 eval[sol] = bestNeighbour[1]
             print(f'{i/n*100:.2f}%',end="\r")
+
         #bestEval = max(eval)
         #indexBest = eval.index(bestEval)
+
         maxEval = max(eval)
         bestEval = [i for i,v in enumerate(eval) if v == maxEval]
         
@@ -200,13 +203,13 @@ class LocalSearch():
                 indexBest = e
                 minCost = cost[e]
 
-        bestSolutionPos = self.evaluateSolution([i for i in range(len(self.victims))])
-
-        print(f'Melhor Score Possível: {bestSolutionPos}, Score encontrada:{indexBest}')
-
         path = self.createPath(solutions[indexBest])
-        return path
 
+        ''''
+            return maxEval para testes!!!
+        '''
+        #return maxEval
+        return path
     def createPath(self,solution):
         if(len(solution)==0):
             return ''

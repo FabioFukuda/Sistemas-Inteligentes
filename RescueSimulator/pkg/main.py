@@ -54,11 +54,11 @@ def main():
     model.draw()
 
     # Cria um agente
-    #agents = Agent(model,configDict)
+    agents = Agent(model,configDict)
     '''
         MUDANÇA PARA TESTES !!!!!!!!!!!
     '''
-    agents = TesteBuscaLocal(model,configDict)
+    #agents = TesteBuscaLocal(model,configDict)
 
     ## Ciclo de raciocínio do agente
     #agent.deliberate()
