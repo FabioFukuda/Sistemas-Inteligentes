@@ -74,9 +74,11 @@ class LocalSearch():
             randVic = random.choice(v)
             v.remove(randVic)
             solution.append(randVic)       
-
-        solution.pop()
-        cost.append(self.calcCostSolution(solution))
+        solCost = self.calcCostSolution(solution)
+        if(solCost>ts):
+            solution.pop()
+            solCost = self.calcCostSolution(solution)
+        cost.append(solCost)
         return solution
 
     def calcCostSolution(self,solution):
@@ -139,7 +141,7 @@ class LocalSearch():
     def swapNeighbours(self,neighbours,ts):
         newNeighbours = []
         for neighbour in neighbours:
-            if(len(neighbour)==1):
+            if(len(neighbour)<=1):
                 continue
             newNeighbour = deepcopy(neighbour)
             randVict = random.sample(list(range(len(newNeighbour))),2)
