@@ -32,18 +32,23 @@ class DFS:
 		self.stateMesh = stateMesh
 
 	def dfs(self,state:Tuple):
-
+		if self.prevNode.state==(23,23):
+			pass
 		if (state == self.prevNode.state and not self.firstStep):
 			nextNode = self.stack[-1]
 			self.stack.pop()
+
+			while(nextNode[1] in self.visitedNodes):
+				nextNode = self.stack[-1]
+				self.stack.pop()
 
 			goalState = nextNode[2].state
 			initialState = state
 			path = []
 			if(goalState != initialState):
-				path = self.aStar.a_star_algorithm(goalState,initialState,self.stateMesh)[0]
+				path = self.aStar.a_star_algorithm(initialState,goalState,self.stateMesh)[0]
 			self.prevNode =  nextNode[2]
-			path.append( nextNode[0])
+			path.append(nextNode[0])
 			self.curNode = nextNode[1]
 			
 			return path
@@ -66,9 +71,9 @@ class DFS:
 			initialState = self.curNode.state
 			path = []
 			if(goalState != initialState):
-				path = self.aStar.a_star_algorithm(goalState,initialState,self.stateMesh)[0]
+				path = self.aStar.a_star_algorithm(initialState,goalState,self.stateMesh)[0]
 			self.prevNode =  nextNode[2]
-			path += nextNode[0]
+			path.append(nextNode[0])
 			self.curNode = nextNode[1]
 			self.visitedNodes.append(nextNode[1])
 			return path
@@ -101,7 +106,7 @@ class DFS:
 		if self.prob.mazeBelief[curNode.state[0]][curNode.state[1]+2] == 0:
 			if (curNode.state[0]-1,curNode.state[1]+1) not in self.nodeDict.keys():
 				self.nodeDict[(curNode.state[0]-1,curNode.state[1]+1)] = self.Node((curNode.state[0]-1,curNode.state[1]+1),curNode)
-			nodes.append(('NE',self.nodeDict[(curNode.state[0]-1,curNode.state[1]-1)],curNode))
+			nodes.append(('NE',self.nodeDict[(curNode.state[0]-1,curNode.state[1]+1)],curNode))
 		if self.prob.mazeBelief[curNode.state[0]+1][curNode.state[1]+2] == 0:
 			if (curNode.state[0],curNode.state[1]+1) not in self.nodeDict.keys():
 				self.nodeDict[(curNode.state[0],curNode.state[1]+1)] = self.Node((curNode.state[0],curNode.state[1]+1),curNode)

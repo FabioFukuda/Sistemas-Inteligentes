@@ -113,8 +113,12 @@ class DFSPlan:
         return posDir
 
     def chooseAction(self):
+        
+        if(self.currentState ==State(24,23)):
+            pass
         if(len(self.dfsPath) == 0):
             self.dfsPath = self.dfs.dfs((self.currentState.row,self.currentState.col)) 
+        
         action = self.dfsPath[0]
         state = State(self.currentState.row+self.dictDir[action][0],self.currentState.col+self.dictDir[action][1])
         self.dfsPath.pop(0)
