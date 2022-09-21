@@ -143,7 +143,7 @@ class LocalSearch():
         for neighbour in neighbours:
             if(len(neighbour)<=1):
                 continue
-            numSwap = int(len(neighbour)/10)+1
+            numSwap = int(len(neighbour)/10)+2
             for swap in range(numSwap):
                 newNeighbour = deepcopy(neighbour)
                 randVict = random.sample(list(range(len(newNeighbour))),2)
@@ -205,7 +205,7 @@ class LocalSearch():
         'NE':1.5,
         'SO':1.5,
         'SE':1.5
-          }
+        }
 
         for i in range(num):
             sol = self.createSolution(ts,cost)

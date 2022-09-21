@@ -2,6 +2,7 @@ from random import randint
 from state import State
 from aStar import AStar
 from stateMesh import StateMesh
+from dfs import DFS
 
 class DFSPlan:
     dictDir = {
@@ -14,7 +15,7 @@ class DFSPlan:
         'SO':(1,-1),
         'SE':(1,1)
     }
-    def __init__(self, initialState,stateMesh, name = "none" ,prob = None):
+    def __init__(self, initialState:State,stateMesh, name = "none" ,prob = None):
 
         self.walls = []
         self.initialState = initialState
@@ -38,9 +39,12 @@ class DFSPlan:
         #Define o caminho de volta
         self.path = []
 
+        self.dfsPath = []
+
         self.stateMesh = stateMesh
         self.stateMesh.addNode(self.currentState)
         self.aStar = AStar()
+        self.dfs = DFS((initialState.row,initialState.col),prob,stateMesh)
 
     def setWalls(self, walls):
         row = 0
@@ -60,6 +64,7 @@ class DFSPlan:
         self.upGraph()
         if self.state == 0:
             self.upShortestWayBack()
+        
     
     def updateTimeLeft(self,time):
         ''' Verifica se dá tempo para o angente dar mais um passo. A condição time<=self.estTime+1.5 se justifica pois se o agente for
@@ -87,6 +92,7 @@ class DFSPlan:
 
     #Direções que o agente pode ir de acordo com a sua crença do mapa.
     def posDirections(self,state):
+        
         posDir = []
         if self.prob.mazeBelief[state.row][state.col] == 1:
             posDir.append(('NO',(state.row-1,state.col-1)))
@@ -107,6 +113,13 @@ class DFSPlan:
         return posDir
 
     def chooseAction(self):
+        if(len(self.dfsPath) == 0):
+            self.dfsPath = self.dfs.dfs((self.currentState.row,self.currentState.col)) 
+        action = self.dfsPath[0]
+        state = State(self.currentState.row+self.dictDir[action][0],self.currentState.col+self.dictDir[action][1])
+        self.dfsPath.pop(0)
+        return action,state
+        '''
         if(self.state == 0):
             action = "L"  if self.EastDir == 1 else "O"
             if(self.nextAction == 'S'):
@@ -126,6 +139,8 @@ class DFSPlan:
             state = State(self.currentState.row+self.dictDir[action][0],self.currentState.col+self.dictDir[action][1])
             self.path.pop(0)
             return action,state
+        '''
+
     def do(self):
         """
         Método utilizado para o polimorfismo dos planos

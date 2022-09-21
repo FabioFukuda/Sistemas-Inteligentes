@@ -32,8 +32,8 @@ class TesteBuscaLocal():
         self.initialState = State(model.maze.board.posAgent[0],model.maze.board.posAgent[1])
 
     def execute(self):
-        numVitimas = 10
-        numMinIt = 90
+        numVitimas = 15
+        numMinIt = 0
         numMaxIt = 100
         numVizinhos = 20
         ts = 100
