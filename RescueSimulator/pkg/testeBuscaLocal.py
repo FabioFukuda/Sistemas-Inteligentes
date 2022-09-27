@@ -33,8 +33,8 @@ class TesteBuscaLocal():
 
     def execute(self):
         numVitimas = 15
-        numMinIt = 0
-        numMaxIt = 100
+        numMinIt = 100
+        numMaxIt = 101
         numVizinhos = 20
         ts = 100
 

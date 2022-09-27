@@ -31,9 +31,12 @@ class DFS:
 		self.aStar = AStar()
 		self.stateMesh = stateMesh
 
+		self.createNodeFunctions = {}
+		self.stackOrder = ['NO','NE','SE','SO','N','S','L','O']
+		self.initNodeCreationFunctions()
+
 	def dfs(self,state:Tuple):
-		if self.prevNode.state==(23,23):
-			pass
+		#Se ele bateu em uma parede.
 		if (state == self.prevNode.state and not self.firstStep):
 			nextNode = self.stack[-1]
 			self.stack.pop()
@@ -90,41 +93,61 @@ class DFS:
 		self.curNode = nextNode[1]
 		self.visitedNodes.append(nextNode[1])
 
-
 		return [nextNode[0]]
-		
+	
 	def createPosNodes(self,curNode):
-		nodes = []	
-		if self.prob.mazeBelief[curNode.state[0]][curNode.state[1]] == 0:
-			if (curNode.state[0]-1,curNode.state[1]-1) not in self.nodeDict.keys():
-				self.nodeDict[(curNode.state[0]-1,curNode.state[1]-1)] = self.Node((curNode.state[0]-1,curNode.state[1]-1),curNode)
-			nodes.append(('NO',self.nodeDict[(curNode.state[0]-1,curNode.state[1]-1)],curNode))
-		if self.prob.mazeBelief[curNode.state[0]][curNode.state[1]+1] == 0:
-			if (curNode.state[0]-1,curNode.state[1]) not in self.nodeDict.keys():
-				self.nodeDict[(curNode.state[0]-1,curNode.state[1])] = self.Node((curNode.state[0]-1,curNode.state[1]),curNode)
-			nodes.append(('N',self.nodeDict[(curNode.state[0]-1,curNode.state[1])],curNode))
-		if self.prob.mazeBelief[curNode.state[0]][curNode.state[1]+2] == 0:
-			if (curNode.state[0]-1,curNode.state[1]+1) not in self.nodeDict.keys():
-				self.nodeDict[(curNode.state[0]-1,curNode.state[1]+1)] = self.Node((curNode.state[0]-1,curNode.state[1]+1),curNode)
-			nodes.append(('NE',self.nodeDict[(curNode.state[0]-1,curNode.state[1]+1)],curNode))
-		if self.prob.mazeBelief[curNode.state[0]+1][curNode.state[1]+2] == 0:
-			if (curNode.state[0],curNode.state[1]+1) not in self.nodeDict.keys():
-				self.nodeDict[(curNode.state[0],curNode.state[1]+1)] = self.Node((curNode.state[0],curNode.state[1]+1),curNode)
-			nodes.append(('L',self.nodeDict[(curNode.state[0],curNode.state[1]+1)],curNode))
-		if self.prob.mazeBelief[curNode.state[0]+2][curNode.state[1]+2] == 0:
-			if (curNode.state[0]+1,curNode.state[1]+1) not in self.nodeDict.keys():
-				self.nodeDict[(curNode.state[0]+1,curNode.state[1]+1)] = self.Node((curNode.state[0]+1,curNode.state[1]+1),curNode)
-			nodes.append(('SE',self.nodeDict[(curNode.state[0]+1,curNode.state[1]+1)],curNode))
-		if self.prob.mazeBelief[curNode.state[0]+2][curNode.state[1]+1] == 0:
-			if (curNode.state[0]+1,curNode.state[1]) not in self.nodeDict.keys():
-				self.nodeDict[(curNode.state[0]+1,curNode.state[1])] = self.Node((curNode.state[0]+1,curNode.state[1]),curNode)
-			nodes.append(('S',self.nodeDict[(curNode.state[0]+1,curNode.state[1])],curNode))
-		if self.prob.mazeBelief[curNode.state[0]+2][curNode.state[1]] == 0:
-			if (curNode.state[0]+1,curNode.state[1]-1) not in self.nodeDict.keys():
-				self.nodeDict[(curNode.state[0]+1,curNode.state[1]-1)] = self.Node((curNode.state[0]+1,curNode.state[1]-1),curNode)
-			nodes.append(('SO',self.nodeDict[(curNode.state[0]+1,curNode.state[1]-1)],curNode))
-		if self.prob.mazeBelief[curNode.state[0]+1][curNode.state[1]] == 0:
-			if (curNode.state[0],curNode.state[1]-1) not in self.nodeDict.keys():
-				self.nodeDict[(curNode.state[0],curNode.state[1]-1)] = self.Node((curNode.state[0],curNode.state[1]-1),curNode)
-			nodes.append(('O',self.nodeDict[(curNode.state[0],curNode.state[1]-1)],curNode))
+		nodes = []
+		for dir in self.stackOrder:
+			self.createNodeFunctions[dir](self,curNode,nodes)
 		return nodes
+
+	def initNodeCreationFunctions(self):
+		def createNodeNE(self,curNode,nodes):
+			if self.prob.mazeBelief[curNode.state[0]][curNode.state[1]+2] == 0 and self.prob.mazeBelief[curNode.state[0]][curNode.state[1]+1]==1 and self.prob.mazeBelief[curNode.state[0]+1][curNode.state[1]+2]==1:
+				if (curNode.state[0]-1,curNode.state[1]+1) not in self.nodeDict.keys():
+					self.nodeDict[(curNode.state[0]-1,curNode.state[1]+1)] = self.Node((curNode.state[0]-1,curNode.state[1]+1),curNode)
+				nodes.append(('NE',self.nodeDict[(curNode.state[0]-1,curNode.state[1]+1)],curNode))
+		self.createNodeFunctions['NE'] = createNodeNE
+		def createNodeNO(self,curNode,nodes):		
+			if self.prob.mazeBelief[curNode.state[0]][curNode.state[1]] == 0 and self.prob.mazeBelief[curNode.state[0]][curNode.state[1]+1]==1 and self.prob.mazeBelief[curNode.state[0]+1][curNode.state[1]]==1 :
+				if (curNode.state[0]-1,curNode.state[1]-1) not in self.nodeDict.keys():
+					self.nodeDict[(curNode.state[0]-1,curNode.state[1]-1)] = self.Node((curNode.state[0]-1,curNode.state[1]-1),curNode)
+				nodes.append(('NO',self.nodeDict[(curNode.state[0]-1,curNode.state[1]-1)],curNode))
+		self.createNodeFunctions['NO'] = createNodeNO
+		def createNodeSO(self,curNode,nodes):
+			if self.prob.mazeBelief[curNode.state[0]+2][curNode.state[1]] == 0 and self.prob.mazeBelief[curNode.state[0]+1][curNode.state[1]]==1 and self.prob.mazeBelief[curNode.state[0]+2][curNode.state[1]+1]==1 :
+				if (curNode.state[0]+1,curNode.state[1]-1) not in self.nodeDict.keys():
+					self.nodeDict[(curNode.state[0]+1,curNode.state[1]-1)] = self.Node((curNode.state[0]+1,curNode.state[1]-1),curNode)
+				nodes.append(('SO',self.nodeDict[(curNode.state[0]+1,curNode.state[1]-1)],curNode))
+		self.createNodeFunctions['SO'] = createNodeSO
+		def createNodeSE(self,curNode,nodes):
+			if self.prob.mazeBelief[curNode.state[0]+2][curNode.state[1]+2] == 0 and self.prob.mazeBelief[curNode.state[0]+1][curNode.state[1]+2]==1 and self.prob.mazeBelief[curNode.state[0]+2][curNode.state[1]+1]==1:
+				if (curNode.state[0]+1,curNode.state[1]+1) not in self.nodeDict.keys():
+					self.nodeDict[(curNode.state[0]+1,curNode.state[1]+1)] = self.Node((curNode.state[0]+1,curNode.state[1]+1),curNode)
+				nodes.append(('SE',self.nodeDict[(curNode.state[0]+1,curNode.state[1]+1)],curNode))	
+		self.createNodeFunctions['SE'] = createNodeSE
+		def createNodeN(self,curNode,nodes):
+			if self.prob.mazeBelief[curNode.state[0]][curNode.state[1]+1] == 0:
+				if (curNode.state[0]-1,curNode.state[1]) not in self.nodeDict.keys():
+					self.nodeDict[(curNode.state[0]-1,curNode.state[1])] = self.Node((curNode.state[0]-1,curNode.state[1]),curNode)
+				nodes.append(('N',self.nodeDict[(curNode.state[0]-1,curNode.state[1])],curNode))
+		self.createNodeFunctions['N'] = createNodeN
+		def createNodeL(self,curNode,nodes):
+			if self.prob.mazeBelief[curNode.state[0]+1][curNode.state[1]+2] == 0:
+				if (curNode.state[0],curNode.state[1]+1) not in self.nodeDict.keys():
+					self.nodeDict[(curNode.state[0],curNode.state[1]+1)] = self.Node((curNode.state[0],curNode.state[1]+1),curNode)
+				nodes.append(('L',self.nodeDict[(curNode.state[0],curNode.state[1]+1)],curNode))
+		self.createNodeFunctions['L'] = createNodeL
+		def createNodeS(self,curNode,nodes):
+			if self.prob.mazeBelief[curNode.state[0]+2][curNode.state[1]+1] == 0:
+				if (curNode.state[0]+1,curNode.state[1]) not in self.nodeDict.keys():
+					self.nodeDict[(curNode.state[0]+1,curNode.state[1])] = self.Node((curNode.state[0]+1,curNode.state[1]),curNode)
+				nodes.append(('S',self.nodeDict[(curNode.state[0]+1,curNode.state[1])],curNode))
+		self.createNodeFunctions['S'] = createNodeS
+		def createNodeO(self,curNode,nodes):
+			if self.prob.mazeBelief[curNode.state[0]+1][curNode.state[1]] == 0:
+				if (curNode.state[0],curNode.state[1]-1) not in self.nodeDict.keys():
+					self.nodeDict[(curNode.state[0],curNode.state[1]-1)] = self.Node((curNode.state[0],curNode.state[1]-1),curNode)
+				nodes.append(('O',self.nodeDict[(curNode.state[0],curNode.state[1]-1)],curNode))
+		self.createNodeFunctions['O'] = createNodeO
+

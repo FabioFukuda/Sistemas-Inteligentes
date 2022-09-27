@@ -94,35 +94,40 @@ class DFSPlan:
     def posDirections(self,state):
         
         posDir = []
-        if self.prob.mazeBelief[state.row][state.col] == 1:
-            posDir.append(('NO',(state.row-1,state.col-1)))
+        if self.prob.mazeBelief[state.row][state.col] == 1 and self.prob.mazeBelief[state.row][state.col+1]==1 and self.prob.mazeBelief[state.row+1][state.col]==1 :
+            posDir.append(('NO',(state.row-1,state.col-1))) 
         if self.prob.mazeBelief[state.row][state.col+1] == 1:
             posDir.append(('N',(state.row-1,state.col)))
-        if self.prob.mazeBelief[state.row][state.col+2] == 1:
+        if self.prob.mazeBelief[state.row][state.col+2] == 1 and self.prob.mazeBelief[state.row][state.col+1]==1 and self.prob.mazeBelief[state.row+1][state.col+2]==1:
             posDir.append(('NE',(state.row-1,state.col+1)))
         if self.prob.mazeBelief[state.row+1][state.col+2] == 1:
             posDir.append(('L',(state.row,state.col+1)))
-        if self.prob.mazeBelief[state.row+2][state.col+2] == 1:
-            posDir.append(('SE',(state.row+1,state.col+1)))
+        if self.prob.mazeBelief[state.row+2][state.col+2] == 1 and self.prob.mazeBelief[state.row+1][state.col+2]==1 and self.prob.mazeBelief[state.row+2][state.col+1]==1:
+            posDir.append(('SE',(state.row+1,state.col+1))) 
         if self.prob.mazeBelief[state.row+2][state.col+1] == 1:
             posDir.append(('S',(state.row+1,state.col)))
-        if self.prob.mazeBelief[state.row+2][state.col] == 1:
+        if self.prob.mazeBelief[state.row+2][state.col] == 1  and self.prob.mazeBelief[state.row+1][state.col]==1 and self.prob.mazeBelief[state.row+2][state.col+1]==1 :
             posDir.append(('SO',(state.row+1,state.col-1)))
         if self.prob.mazeBelief[state.row+1][state.col] == 1:
             posDir.append(('O',(state.row,state.col-1)))
         return posDir
 
     def chooseAction(self):
-        
-        if(self.currentState ==State(24,23)):
-            pass
-        if(len(self.dfsPath) == 0):
-            self.dfsPath = self.dfs.dfs((self.currentState.row,self.currentState.col)) 
-        
-        action = self.dfsPath[0]
-        state = State(self.currentState.row+self.dictDir[action][0],self.currentState.col+self.dictDir[action][1])
-        self.dfsPath.pop(0)
-        return action,state
+        if(self.state == 0):
+            if(self.currentState ==State(24,23)):
+                pass
+            if(len(self.dfsPath) == 0):
+                self.dfsPath = self.dfs.dfs((self.currentState.row,self.currentState.col)) 
+            
+            action = self.dfsPath[0]
+            state = State(self.currentState.row+self.dictDir[action][0],self.currentState.col+self.dictDir[action][1])
+            self.dfsPath.pop(0)
+            return action,state
+        else:
+            action = self.path[0]
+            state = State(self.currentState.row+self.dictDir[action][0],self.currentState.col+self.dictDir[action][1])
+            self.path.pop(0)
+            return action,state
         '''
         if(self.state == 0):
             action = "L"  if self.EastDir == 1 else "O"
