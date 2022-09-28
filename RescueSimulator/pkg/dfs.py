@@ -32,35 +32,51 @@ class DFS:
 		self.stateMesh = stateMesh
 
 		self.createNodeFunctions = {}
-		self.stackOrder = ['NO','NE','SE','SO','N','S','L','O']
+		self.stackOrderCardinal = ['L','N','O','S']
+		self.stackOrderOrdinal = ['SE','NO','NE','SO']
+
+		self.lastMovement = ''
 		self.initNodeCreationFunctions()
 
 	def dfs(self,state:Tuple):
 		#Se ele bateu em uma parede.
 		if (state == self.prevNode.state and not self.firstStep):
+
+			#Pega o próximo nó a ser expandido
 			nextNode = self.stack[-1]
 			self.stack.pop()
 
+			#Enquanto não acha um nó ainda não visitado.
 			while(nextNode[1] in self.visitedNodes):
 				nextNode = self.stack[-1]
 				self.stack.pop()
 
+			#Define o pai do nó a ser expandido como destino.
 			goalState = nextNode[2].state
 			initialState = state
 			path = []
+			#Se o estado atual é diferente do pai do nó a ser expandido
 			if(goalState != initialState):
 				path = self.aStar.a_star_algorithm(initialState,goalState,self.stateMesh)[0]
+			else:
+				pass
 			self.prevNode =  nextNode[2]
+			#Adiciona o caminho para se atingir o nó destino a partir do nó pai.
 			path.append(nextNode[0])
 			self.curNode = nextNode[1]
-			
+			self.updateStackOrder(hitWall=True,nextAction = nextNode[0])
+			self.lastMovement = nextNode[0]
 			return path
 
+		
 		if self.firstStep:
 			self.firstStep = False
-
+		else:
+			self.updateStackOrder(hitWall=False)
+		
 		nodes = self.createPosNodes(self.curNode)
 
+		#Se é um nó folha.
 		if(len(nodes)==0):
 			
 			nextNode = self.stack[-1]
@@ -79,6 +95,7 @@ class DFS:
 			path.append(nextNode[0])
 			self.curNode = nextNode[1]
 			self.visitedNodes.append(nextNode[1])
+			self.lastMovement = nextNode[0]
 			return path
 
 		self.stack += nodes
@@ -92,13 +109,23 @@ class DFS:
 		self.prevNode = self.curNode
 		self.curNode = nextNode[1]
 		self.visitedNodes.append(nextNode[1])
-
+		self.lastMovement = nextNode[0]
 		return [nextNode[0]]
-	
+
+	def updateStackOrder(self,hitWall,nextAction = None):
+		if(hitWall):
+			index = self.stackOrderCardinal.index(self.lastMovement)
+			self.stackOrderCardinal[0],self.stackOrderCardinal[index] = self.stackOrderCardinal[index],self.stackOrderCardinal[0] 
+		else:
+			index = self.stackOrderCardinal.index(self.lastMovement)
+			self.stackOrderCardinal[3],self.stackOrderCardinal[index] = self.stackOrderCardinal[index],self.stackOrderCardinal[3] 
+
 	def createPosNodes(self,curNode):
 		nodes = []
-		for dir in self.stackOrder:
+		for dir in self.stackOrderCardinal:
 			self.createNodeFunctions[dir](self,curNode,nodes)
+		for dir in self.stackOrderOrdinal:
+			self.createNodeFunctions[dir](self,curNode,nodes)	
 		return nodes
 
 	def initNodeCreationFunctions(self):
