@@ -36,6 +36,7 @@ class TesteBuscaLocal():
         numMinIt = 100
         numMaxIt = 101
         numVizinhos = 20
+        nSolutions = 20
         ts = 100
 
         plt.ioff()
@@ -53,7 +54,7 @@ class TesteBuscaLocal():
             local.victims = chosenV
 
             start_time = time.time()
-            eval = local.localSearch(ts,numVizinhos,i,True)
+            eval = local.localSearch(ts,nSolutions,numVizinhos,i,test=True)
             timeDif = time.time() - start_time
 
             dados['numIt'].append(i)

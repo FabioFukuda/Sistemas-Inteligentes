@@ -149,13 +149,11 @@ class LocalSearch():
         for neighbour in neighbours:
             if(len(neighbour)<=1):
                 continue
-            numSwap = int(len(neighbour)/10)+2
-            for swap in range(numSwap):
-                newNeighbour = deepcopy(neighbour)
-                randVict = random.sample(list(range(len(newNeighbour))),2)
-                newNeighbour[randVict[0]],newNeighbour[randVict[1]] = newNeighbour[randVict[1]],newNeighbour[randVict[0]]
-                if self.calcCostSolution(newNeighbour)<=ts:
-                    newNeighbours.append(newNeighbour)  
+            newNeighbour = deepcopy(neighbour)
+            randVict = random.sample(list(range(len(newNeighbour))),2)
+            newNeighbour[randVict[0]],newNeighbour[randVict[1]] = newNeighbour[randVict[1]],newNeighbour[randVict[0]]
+            if self.calcCostSolution(newNeighbour)<=ts:
+                newNeighbours.append(newNeighbour)  
         neighbours+=newNeighbours
 
     def addVictim(self,neighbours,ts):
@@ -170,6 +168,7 @@ class LocalSearch():
                 vicNeighbours.remove(new)
 
                 if self.calcCostSolution(newNeighbour)<=ts:
+                    #neighbours.append(newNeighbour)
                     neighbours[n] = newNeighbour
                     break
 
@@ -177,6 +176,7 @@ class LocalSearch():
 
         neighbours = self.createNeighbours(solution,num,ts)
         neighbours.append(solution)
+
         for i in range(numSwap):
             self.swapNeighbours(neighbours,ts)
         self.addVictim(neighbours,ts)
@@ -184,13 +184,11 @@ class LocalSearch():
         eval = [self.evaluateSolution(solution) for solution in neighbours]
         cost = [self.calcCostSolution(solution) for solution in neighbours]
 
-        #bestEval = max(eval)
-        #indexBest = eval.index(bestEval)
         maxEval = max(eval)
         bestEval = [i for i,v in enumerate(eval) if v == maxEval]
         
         minCost = cost[bestEval[0]]
-        indexBest = 0
+        indexBest = bestEval[0]
         for e in bestEval:
             if cost[e]<minCost:
                 indexBest = e
@@ -198,7 +196,7 @@ class LocalSearch():
 
         return neighbours[indexBest],maxEval
 
-    def localSearch(self,ts,num:int=20,nNei=5,numIt=100,test=False):
+    def localSearch(self,ts,nSolutions:int=20,nNei=5,numIt=100,test=False):
         solutions = []
         eval = []
         cost = []
@@ -218,34 +216,30 @@ class LocalSearch():
         ev = {'iteracao':[],
                 'eval':[]}
 
-        for i in range(num):
+        for i in range(nSolutions):
             sol = self.createSolution(ts,cost)
             solutions.append(sol)
             eval.append(self.evaluateSolution(sol))
-        n = numIt
 
         print('Calculando Trajetória...')
-        for i in range(n):
+        for i in range(numIt):
             for sol in range(len(solutions)):
                 bestNeighbour = self.chooseBestNeighbours(solutions[sol],nNei,ts,5)
                 solutions[sol] = bestNeighbour[0]
                 eval[sol] = bestNeighbour[1]
                 cost[sol] = self.calcCostSolution(solutions[sol])
 
-            #APAGAR
             maxEval = max(eval)
             ev['iteracao'].append(i)
             ev['eval'].append(maxEval)
-            print(f'{i/n*100:.2f}%',end="\r")
 
-        #bestEval = max(eval)
-        #indexBest = eval.index(bestEval)
+            print(f'{i/numIt*100:.2f}%',end="\r")
 
         maxEval = max(eval)
         bestEval = [i for i,v in enumerate(eval) if v == maxEval]
         
         #APAGAR
-        ev['iteracao'].append(n)
+        ev['iteracao'].append(numIt)
         ev['eval'].append(maxEval)
 
         minCost = cost[bestEval[0]]
@@ -258,7 +252,7 @@ class LocalSearch():
         path = self.createPath(solutions[indexBest])
 
         dataFrame = pd.DataFrame(ev)
-        dirPath = os.path.join("resultados",str(n)+'Iterações')
+        dirPath = os.path.join("resultados",str(numIt)+'Iterações')
         
         plt.scatter(x=dataFrame['iteracao'],y=dataFrame['eval'])
         plt.savefig(dirPath)
