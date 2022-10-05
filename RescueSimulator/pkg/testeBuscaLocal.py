@@ -33,39 +33,42 @@ class TesteBuscaLocal():
 
     def execute(self):
         numMinVitimas = 5
-        numMaxVitimas = 40
+        numMaxVitimas = 30
 
-        numIt = 200
+        numIt = 500
 
         numVizinhos = 20
         nSolutions = 20
-        numSwaps = 50
-        ts = 100
+        numSwaps = 20
+        ts = 75
     
-        for vizinho in range(numVizinhos):
-            for swap in range(numSwaps):
-                for j in range(numMinVitimas,numMaxVitimas):
-                    chosenV,chosenVId = self.randomVictims(j)
-                    buscaAux = LocalSearch(self.model,self.initialState,self.prob,self.stateMesh)
-                    buscaAux.calcMinVictimsDist(chosenV)
-                    victDist = buscaAux.victDist
+        
+        for numVitimas in range(numMinVitimas,numMaxVitimas):
+            numVizinhos = numVitimas
+            numSwaps = int(numVitimas)
+            chosenV,chosenVId = self.randomVictims(numVitimas)
+            buscaAux = LocalSearch(self.model,self.initialState,self.prob,self.stateMesh)
+            buscaAux.calcMinVictimsDist(chosenV)
+            victDist = buscaAux.victDist
 
-                    local = LocalSearch(self.model,self.initialState,self.prob,self.stateMesh)
-                    local.victDist = victDist
-                    local.victims = chosenV
+            local = LocalSearch(self.model,self.initialState,self.prob,self.stateMesh)
+            local.victDist = victDist
+            local.victims = chosenV
 
-                    start_time = time.time()
-                    eval = local.localSearch(ts,20,vizinho,numIt,swap,test=True)
-                    timeDif = time.time() - start_time
+            max_score = local.evaluateSolution([i for i in range(len(chosenV))])
+            
+            start_time = time.time()
+            eval = local.localSearch(ts,20,numVizinhos,numIt,numSwaps,test=True)
+            timeDif = time.time() - start_time
 
-                    newRowEval = pd.DataFrame(index=[],columns=['eval'])
-                    newRowEval.loc[0,'eval'] = eval
-                    newRow = pd.DataFrame.from_dict({'num_vitimas':[j],'num_vizinhos':[vizinho],'num_trocas':[swap],'tempo':[timeDif]})
-                    newRow = pd.concat([newRow,newRowEval],axis=1)
+            newRowEval = pd.DataFrame(index=[],columns=['eval'])
+            newRowEval.loc[0,'eval'] = eval
+            newRow = pd.DataFrame.from_dict({'max_score':max_score,'num_vitimas':[numVitimas],'num_vizinhos':[numVizinhos],'num_trocas':[numSwaps],'tempo':[timeDif]})
+            newRow = pd.concat([newRow,newRowEval],axis=1)
 
-                    resultados = pd.read_csv('analise.csv',sep=';')
-                    resultados = pd.concat([resultados,newRow],axis=0)
-                    resultados.to_csv('analise.csv',sep=';',index = False)
+            resultados = pd.read_csv('analise.csv',sep=';')
+            resultados = pd.concat([resultados,newRow],axis=0)
+            resultados.to_csv('analise.csv',sep=';',index = False)
 
 
         return -1
