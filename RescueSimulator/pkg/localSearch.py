@@ -1,4 +1,5 @@
 from copy import deepcopy
+from operator import index
 from aStar import AStar
 import random
 
@@ -144,17 +145,19 @@ class LocalSearch():
                 neighbours.append(newNeighbour)
         return neighbours
         
-    def swapNeighbours(self,neighbours,ts):
+    def swapNeighbours(self,neighbours,ts,numSwap):
         newNeighbours = []
+        
         for neighbour in neighbours:
-            if(len(neighbour)<=1):
-                continue
-            newNeighbour = deepcopy(neighbour)
-            randVict = random.sample(list(range(len(newNeighbour))),2)
-            newNeighbour[randVict[0]],newNeighbour[randVict[1]] = newNeighbour[randVict[1]],newNeighbour[randVict[0]]
-            if self.calcCostSolution(newNeighbour)<=ts:
-                newNeighbours.append(newNeighbour)  
-        neighbours+=newNeighbours
+            for i in range(numSwap):
+                if(len(neighbour)<=1):
+                    continue
+                newNeighbour = deepcopy(neighbour)
+                randVict = random.sample(list(range(len(newNeighbour))),2)
+                newNeighbour[randVict[0]],newNeighbour[randVict[1]] = newNeighbour[randVict[1]],newNeighbour[randVict[0]]
+                if self.calcCostSolution(newNeighbour)<=ts:
+                    newNeighbours.append(newNeighbour)  
+        return newNeighbours
 
     def addVictim(self,neighbours,ts):
         for n in range(len(neighbours)):
@@ -174,29 +177,31 @@ class LocalSearch():
 
     def chooseBestNeighbours(self,solution:list,num,ts,numSwap = 1):
 
+        #Tira num da solução, e escolhe num novos vizinhos.
         neighbours = self.createNeighbours(solution,num,ts)
         neighbours.append(solution)
-
-        for i in range(numSwap):
-            self.swapNeighbours(neighbours,ts)
+        
+        #Troca duas vítimas de posição
+        neighbours += self.swapNeighbours(neighbours,ts,numSwap)
         self.addVictim(neighbours,ts)
 
         eval = [self.evaluateSolution(solution) for solution in neighbours]
-        cost = [self.calcCostSolution(solution) for solution in neighbours]
+        #cost = [self.calcCostSolution(solution) for solution in neighbours]
 
         maxEval = max(eval)
+        indexBest = eval.index(maxEval)
+        '''
         bestEval = [i for i,v in enumerate(eval) if v == maxEval]
-        
         minCost = cost[bestEval[0]]
         indexBest = bestEval[0]
         for e in bestEval:
             if cost[e]<minCost:
                 indexBest = e
                 minCost = cost[e]
-
+        '''
         return neighbours[indexBest],maxEval
 
-    def localSearch(self,ts,nSolutions:int=20,nNei=5,numIt=100,test=False):
+    def localSearch(self,ts,nSolutions:int=20,nNei=5,numIt=100,numSwaps = 1,test=False):
         solutions = []
         eval = []
         cost = []
@@ -224,10 +229,10 @@ class LocalSearch():
         print('Calculando Trajetória...')
         for i in range(numIt):
             for sol in range(len(solutions)):
-                bestNeighbour = self.chooseBestNeighbours(solutions[sol],nNei,ts,5)
+                bestNeighbour = self.chooseBestNeighbours(solutions[sol],nNei,ts,numSwaps)
                 solutions[sol] = bestNeighbour[0]
                 eval[sol] = bestNeighbour[1]
-                cost[sol] = self.calcCostSolution(solutions[sol])
+                #cost[sol] = self.calcCostSolution(solutions[sol])
 
             maxEval = max(eval)
             ev['iteracao'].append(i)
@@ -251,15 +256,8 @@ class LocalSearch():
 
         path = self.createPath(solutions[indexBest])
 
-        dataFrame = pd.DataFrame(ev)
-        dirPath = os.path.join("resultados",str(numIt)+'Iterações')
-        
-        plt.scatter(x=dataFrame['iteracao'],y=dataFrame['eval'])
-        plt.savefig(dirPath)
-
-
         if test:
-            return maxEval
+            return ev['eval']
     
         return path
 

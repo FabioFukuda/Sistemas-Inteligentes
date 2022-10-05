@@ -32,41 +32,42 @@ class TesteBuscaLocal():
         self.initialState = State(model.maze.board.posAgent[0],model.maze.board.posAgent[1])
 
     def execute(self):
-        numVitimas = 15
-        numMinIt = 100
-        numMaxIt = 101
+        numMinVitimas = 5
+        numMaxVitimas = 40
+
+        numIt = 200
+
         numVizinhos = 20
         nSolutions = 20
+        numSwaps = 50
         ts = 100
+    
+        for vizinho in range(numVizinhos):
+            for swap in range(numSwaps):
+                for j in range(numMinVitimas,numMaxVitimas):
+                    chosenV,chosenVId = self.randomVictims(j)
+                    buscaAux = LocalSearch(self.model,self.initialState,self.prob,self.stateMesh)
+                    buscaAux.calcMinVictimsDist(chosenV)
+                    victDist = buscaAux.victDist
 
-        plt.ioff()
-        dados = {'numIt':[],'score':[],'tempo':[]}
-        
-        chosenV,chosenVId = self.randomVictims(numVitimas)
-        buscaAux = LocalSearch(self.model,self.initialState,self.prob,self.stateMesh)
-        buscaAux.calcMinVictimsDist(chosenV)
-        victDist = buscaAux.victDist
+                    local = LocalSearch(self.model,self.initialState,self.prob,self.stateMesh)
+                    local.victDist = victDist
+                    local.victims = chosenV
 
-        for i in range(numMinIt,numMaxIt):
-            print(f'Iterção Número:{i}')
-            local = LocalSearch(self.model,self.initialState,self.prob,self.stateMesh)
-            local.victDist = victDist
-            local.victims = chosenV
+                    start_time = time.time()
+                    eval = local.localSearch(ts,20,vizinho,numIt,swap,test=True)
+                    timeDif = time.time() - start_time
 
-            start_time = time.time()
-            eval = local.localSearch(ts,nSolutions,numVizinhos,i,test=True)
-            timeDif = time.time() - start_time
+                    newRowEval = pd.DataFrame(index=[],columns=['eval'])
+                    newRowEval.loc[0,'eval'] = eval
+                    newRow = pd.DataFrame.from_dict({'num_vitimas':[j],'num_vizinhos':[vizinho],'num_trocas':[swap],'tempo':[timeDif]})
+                    newRow = pd.concat([newRow,newRowEval],axis=1)
 
-            dados['numIt'].append(i)
-            dados['score'].append(eval)
-            dados['tempo'].append(timeDif)
+                    resultados = pd.read_csv('analise.csv',sep=';')
+                    resultados = pd.concat([resultados,newRow],axis=0)
+                    resultados.to_csv('analise.csv',sep=';',index = False)
 
-        dataFrame = pd.DataFrame(dados)
-        path = os.path.join("resultados",str(numVitimas)+'Vitimas_' + str(numMinIt)+'-'+str(numMaxIt)+'_Iteracoes')
-        
-        plt.scatter(x=dataFrame['numIt'],y=dataFrame['score'])
-        plt.savefig(path)
-        
+
         return -1
 
     def randomVictims(self,numVict):
