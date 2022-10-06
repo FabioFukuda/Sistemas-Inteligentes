@@ -33,7 +33,7 @@ class TesteBuscaLocal():
 
     def execute(self):
         numMinVitimas = 5
-        numMaxVitimas = 40
+        numMaxVitimas = 9
 
         numIt = 200
 

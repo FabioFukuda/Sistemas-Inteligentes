@@ -41,8 +41,8 @@ def main():
     mesh = "square"
 
     ## nome do arquivo de configuracao do ambiente - deve estar na pasta <proj>/config_data
-    loadMaze = "new_ambiente"
-    #loadMaze = "ambiente"
+    #loadMaze = "new_ambiente"
+    loadMaze = "ambiente"
     model = Model(configDict["maxLin"], configDict["maxCol"], mesh, loadMaze)
     buildMaze(model)
 
@@ -54,17 +54,17 @@ def main():
     model.draw()
 
     # Cria um agente
-    #agents = Agent(model,configDict)
+    agents = Agent(model,configDict)
     '''
         MUDANÇA PARA TESTES !!!!!!!!!!!
     '''
-    agents = TesteBuscaLocal(model,configDict)
+    #agents = TesteBuscaLocal(model,configDict)
 
     ## Ciclo de raciocínio do agente
     #agent.deliberate()
     while agents.execute() != -1:
         model.draw()
-        time.sleep(0.1) # para dar tempo de visualizar as movimentacoes do agente no labirinto
+        time.sleep(0.01) # para dar tempo de visualizar as movimentacoes do agente no labirinto
     model.draw()    
         
 if __name__ == '__main__':

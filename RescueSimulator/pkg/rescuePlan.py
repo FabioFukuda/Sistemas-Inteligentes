@@ -29,7 +29,10 @@ class RescuePlan:
     
     def calcPath(self,ts,victims):
         self.localSearch.calcMinVictimsDist(victims)
-        self.path = self.localSearch.localSearch(ts,20)
+        numNei = len(victims)
+        numSwaps = int(numNei/2)
+
+        self.path = self.localSearch.localSearch(ts,20,numNei,200,numSwaps,test=False)
 
     def chooseAction(self):
         if len(self.path) == 0:

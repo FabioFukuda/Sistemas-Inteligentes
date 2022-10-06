@@ -68,7 +68,7 @@ class MapSquare:
             ## Percorre os elementos que foram definidos
             for i in things:
                 for j in things[i]:
-                    pos = j.split(",")
+                    pos = j.rstrip('\n').split(",")
                     ## Define que naquela posicao vai ter determinado objeto
                     self.listPlaces[int(pos[0])][int(pos[1])].itemInside = i
                     ## Atualiza a cor do lugar
@@ -76,10 +76,10 @@ class MapSquare:
 
             ## Seta as posicoes do robo e do objetivo
             if "Agente" in things:
-                pos = things["Agente"][0].split(",")
+                pos = things["Agente"][0].rstrip('\n').split(",")
                 self.posAgent = (int(pos[0]), int(pos[1]))
             if "Objetivo" in things:
-                pos = things["Objetivo"][0].split(",")
+                pos = things["Objetivo"][0].rstrip('\n').split(",")
                 self.posGoal = (int(pos[0]), int(pos[1]))
 
 
