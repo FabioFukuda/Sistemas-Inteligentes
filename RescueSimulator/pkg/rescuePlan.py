@@ -28,12 +28,12 @@ class RescuePlan:
         self.localSearch = LocalSearch(model,initialState,prob,stateMesh)
     
     def calcPath(self,ts,victims):
-        self.localSearch.calcMinVictimsDist(victims)
+        if(self.localSearch.calcMinVictimsDist(victims) == -1):
+            return -1
         numNei = len(victims)
         numSwaps = int(numNei/2)
-
         self.path = self.localSearch.localSearch(ts,20,numNei,200,numSwaps,test=False)
-
+        return 1
     def chooseAction(self):
         if len(self.path) == 0:
             return 'nop',self.currentState

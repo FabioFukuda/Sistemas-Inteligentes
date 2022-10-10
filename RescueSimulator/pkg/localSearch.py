@@ -1,5 +1,6 @@
 from copy import deepcopy
 from operator import index
+from threading import Timer
 from aStar import AStar
 import random
 
@@ -10,7 +11,7 @@ import os
 import matplotlib.pyplot as plt
 
 class LocalSearch():
-    
+
     def __init__(self,model,initialState,prob,stateMesh):
         self.initialState = initialState
         self.currentState = initialState
@@ -25,8 +26,9 @@ class LocalSearch():
         self.model = model
 
     def calcMinVictimsDist(self,victims:list):
+        if(len(victims) == 0):
+            return -1
         self.victims = victims
-
         for v1 in range(len(victims)-1):
             self.victDist[(v1,-1)] = self.aStar.a_star_algorithm(
                     (victims[v1]['pos'].row,victims[v1]['pos'].col),
@@ -56,6 +58,7 @@ class LocalSearch():
                     (victims[len(victims)-1]['pos'].row,victims[len(victims)-1]['pos'].col),
                     self.stateMesh
         )
+        return 1
 
     def reversePath(self,path):
         revDir = {
@@ -73,7 +76,7 @@ class LocalSearch():
             revP.append(revDir[p])
         return list(reversed(revP))
         
-    def createSolution(self,ts,cost:list=None):
+    def createSolution(self,ts:list=None):
         v = list(range(len(self.victims)))
         solution = []
 
@@ -85,7 +88,6 @@ class LocalSearch():
         if(solCost>ts):
             solution.pop()
             solCost = self.calcCostSolution(solution)
-        cost.append(solCost)
         return solution
 
     def calcCostSolution(self,solution):
@@ -204,7 +206,6 @@ class LocalSearch():
     def localSearch(self,ts,nSolutions:int=20,nNei=5,numIt=100,numSwaps = 1,test=False):
         solutions = []
         eval = []
-        cost = []
 
         dictCost = {
         'N':1,
@@ -222,7 +223,7 @@ class LocalSearch():
                 'eval':[]}
 
         for i in range(nSolutions):
-            sol = self.createSolution(ts,cost)
+            sol = self.createSolution(ts)
             solutions.append(sol)
             eval.append(self.evaluateSolution(sol))
 
@@ -241,19 +242,8 @@ class LocalSearch():
             print(f'{i/numIt*100:.2f}%',end="\r")
 
         maxEval = max(eval)
-        bestEval = [i for i,v in enumerate(eval) if v == maxEval]
-        
-        #APAGAR
-        ev['iteracao'].append(numIt)
-        ev['eval'].append(maxEval)
-
-        minCost = cost[bestEval[0]]
-        indexBest = 0
-        for e in bestEval:
-            if cost[e]<minCost:
-                indexBest = e
-                minCost = cost[e]
-
+        print('Score:' + str(maxEval))
+        indexBest = eval.index(maxEval)
         path = self.createPath(solutions[indexBest])
 
         if test:

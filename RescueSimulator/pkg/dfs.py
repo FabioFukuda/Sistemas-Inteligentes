@@ -43,6 +43,8 @@ class DFS:
 		if (state == self.prevNode.state and not self.firstStep):
 
 			#Pega o próximo nó a ser expandido
+			if len(self.stack)==0:
+				return 'nop'
 			nextNode = self.stack[-1]
 			self.stack.pop()
 
@@ -119,7 +121,8 @@ class DFS:
 		else:
 			index = self.stackOrderCardinal.index(self.lastMovement)
 			self.stackOrderCardinal[3],self.stackOrderCardinal[index] = self.stackOrderCardinal[index],self.stackOrderCardinal[3] 
-
+	def randomStck(self):
+		
 	def createPosNodes(self,curNode):
 		nodes = []
 		for dir in self.stackOrderCardinal:

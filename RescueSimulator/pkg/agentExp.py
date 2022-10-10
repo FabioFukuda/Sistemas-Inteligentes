@@ -26,6 +26,7 @@ class AgentExplorer:
 
         ## Obtem o tempo que tem para executar
         self.tl = configDict["Tl"]
+        self.t = self.tl
         print("Tempo disponivel: ", self.tl)
         
         ## Pega o tipo de mesh, que está no model (influência na movimentação)
@@ -122,6 +123,9 @@ class AgentExplorer:
         if self.prob.goalTest(self.currentState):
             print("!!! Objetivo atingido !!!")
             del self.libPlan[0]  ## retira plano da biblioteca
+            print('Porcentual de vítimas encontradas:'+ str(len(self.victims)/self.model.getNumberOfVictims()))
+            print('tempo gasto pelo As por vítima salva:' + str((self.t-self.tl)/len(self.victims)))
+            print('Porcentual ponderado de vítimas encontradas por extrato de gravidade' + str(self.calcScore()))
             return 0
             
         ## Define a proxima acao a ser executada
@@ -136,7 +140,27 @@ class AgentExplorer:
         self.prob.updateMazeBelief(self.expectedState.row,self.expectedState.col)
         #self.prob.printMazeBelief()
         return 1
-
+    def calcScore(self):
+        victimsSignals = []
+        for victim in self.victimsID:
+            victimsSignals.append(self.victimVitalSignalsSensor(victim))
+        victiomsConditions = [0 for i in range(4)]
+        for victim in victimsSignals:
+            if victim<=0.25:
+                victiomsConditions[0] +=1
+                continue
+            elif victim<=0.50:
+                victiomsConditions[1] +=1
+                continue
+            elif victim<=0.75:
+                victiomsConditions[2] +=1
+                continue
+            else:
+                victiomsConditions[3] +=1
+                continue
+        num = 4*victiomsConditions[0]+ 3*victiomsConditions[1] + 2*victiomsConditions[2] +victiomsConditions[3]
+        den = 4*self.model.getVictimsCondition()[0]+ 3*self.model.getVictimsCondition()[1] + 2*self.model.getVictimsCondition()[2] +self.model.getVictimsCondition()[3]
+        return float(num)/den
     ## Metodo que executa as acoes
     def executeGo(self, action):
         """Atuador: solicita ao agente físico para executar a acao.

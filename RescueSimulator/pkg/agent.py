@@ -18,9 +18,10 @@ class Agent():
 
         if state == 0 and self.curAgent=='exp':
             self.agentResc.setVictims(self.agentExp.getVictims())
-            self.agentResc.elaboratePlan()
-            self.agentResc.deliberate()
-            self.agent = self.agentResc
-            self.curAgent = 'resc'
-
+            if(self.agentResc.elaboratePlan() == 1):
+                self.agentResc.deliberate()
+                self.agent = self.agentResc
+                self.curAgent = 'resc'
+            else:
+                return 0
         return state

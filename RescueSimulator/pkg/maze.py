@@ -65,11 +65,12 @@ class Maze:
     def updateWalls(self):
        
         ## Metodo que atualiza a lista dos objetos (vitimas) que estao no labirinto
-        vs_file = open(os.path.join("geradorVitimas" ,"new_sinaisvitais.txt"),"r")
-        diff_file = open(os.path.join("geradorVitimas" ,"new_difacesso.txt"),"r")
+        vs_file = open(os.path.join("config_data" ,"sinaisvitais.txt"),"r")
+        diff_file = open(os.path.join("config_data" ,"new_difacesso.txt"),"r")
 
         ## Pega a matriz com todos os lugares (seja quadrado ou triangulo)
         aux = self.board.getListPlaces()
+        victMap = self.board.mapVictims
         for i in aux:
             for j in i:
                 ## Verifica o tipo do objeto, e coloca sua identificacao na matriz walls 
@@ -79,7 +80,7 @@ class Maze:
                 elif j.itemInside == "Vitima":
                     pos = j.ide
                     self.numberOfVictims = self.numberOfVictims + 1
-                    self.victims[pos[0]][pos[1]] = self.numberOfVictims
+                    self.victims[pos[0]][pos[1]] = victMap[(str(pos[0]),str(pos[1]))]
                     
                     vs_line = vs_file.readline()
                     if vs_line:

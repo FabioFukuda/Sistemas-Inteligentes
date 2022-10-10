@@ -69,7 +69,7 @@ class DFSPlan:
     def updateTimeLeft(self,time):
         ''' Verifica se dá tempo para o angente dar mais um passo. A condição time<=self.estTime+1.5 se justifica pois se o agente for
         dar mais um passo, no pior caso o tempo estimado aumenta em 1.5 segundos.'''
-        if(time<=self.estTime+1.5):
+        if(time<=self.estTime+5):
             self.state = 1
         return self.state
 
@@ -114,11 +114,14 @@ class DFSPlan:
 
     def chooseAction(self):
         if(self.state == 0):
-            if(self.currentState ==State(24,23)):
-                pass
             if(len(self.dfsPath) == 0):
                 self.dfsPath = self.dfs.dfs((self.currentState.row,self.currentState.col)) 
-            
+                if self.dfsPath == 'nop': 
+                    self.state=1
+                    action = self.path[0]
+                    state = State(self.currentState.row+self.dictDir[action][0],self.currentState.col+self.dictDir[action][1])
+                    self.path.pop(0)
+                    return action,state
             action = self.dfsPath[0]
             state = State(self.currentState.row+self.dictDir[action][0],self.currentState.col+self.dictDir[action][1])
             self.dfsPath.pop(0)

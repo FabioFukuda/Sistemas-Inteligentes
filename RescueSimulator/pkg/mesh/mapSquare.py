@@ -30,7 +30,7 @@ class MapSquare:
 
         ## Variavel que armazena o arquivo que contem o mapa inicial
         self.load = load
-        
+        self.mapVictims = {}
         ## Chama o metodo para gerar a malha
         self.generateMap()
 
@@ -66,6 +66,7 @@ class MapSquare:
                 things[values.pop(0)] = values
 
             ## Percorre os elementos que foram definidos
+            numV = 1
             for i in things:
                 for j in things[i]:
                     pos = j.rstrip('\n').split(",")
@@ -73,6 +74,9 @@ class MapSquare:
                     self.listPlaces[int(pos[0])][int(pos[1])].itemInside = i
                     ## Atualiza a cor do lugar
                     self.listPlaces[int(pos[0])][int(pos[1])].updateColor()
+                    if(i == 'Vitima'):
+                        self.mapVictims[(pos[0],pos[1])] = numV
+                        numV+=1
 
             ## Seta as posicoes do robo e do objetivo
             if "Agente" in things:
