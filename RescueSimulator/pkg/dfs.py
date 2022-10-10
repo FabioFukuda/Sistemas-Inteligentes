@@ -121,8 +121,7 @@ class DFS:
 		else:
 			index = self.stackOrderCardinal.index(self.lastMovement)
 			self.stackOrderCardinal[3],self.stackOrderCardinal[index] = self.stackOrderCardinal[index],self.stackOrderCardinal[3] 
-	def randomStck(self):
-		
+
 	def createPosNodes(self,curNode):
 		nodes = []
 		for dir in self.stackOrderCardinal:
