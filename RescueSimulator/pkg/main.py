@@ -4,11 +4,9 @@ import time
 
 #from agentExp import AgentExplorer
 from agent import Agent
-from testeBuscaLocal import TesteBuscaLocal
 ## Importa as classes que serao usadas
 sys.path.append(os.path.join("pkg"))
 from model import Model
-from testeBuscaLocal import TesteBuscaLocal
 
 ## Metodo utilizado para permitir que o usuario construa o labirindo clicando em cima
 def buildMaze(model):
@@ -55,13 +53,7 @@ def main():
 
     # Cria um agente
     agents = Agent(model,configDict)
-    '''
-        MUDANÇA PARA TESTES !!!!!!!!!!!
-    '''
-    #agents = TesteBuscaLocal(model,configDict)
 
-    ## Ciclo de raciocínio do agente
-    #agent.deliberate()
     while agents.execute() != -1:
         model.draw()
         time.sleep(0.01) # para dar tempo de visualizar as movimentacoes do agente no labirinto

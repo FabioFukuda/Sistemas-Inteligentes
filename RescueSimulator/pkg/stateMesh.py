@@ -1,10 +1,9 @@
-from state import State
-
 '''
 Classe criada para  representar uma malha de estados, onde cada nó representa um estado (State). Assim, um nó se conecta ao outro
 se ambos já foram visitados pelo agente.
 
-A classe serve para verificar as ações possíveis em um determinado estado.'
+A classe serve para verificar as ações possíveis em um determinado estado. Assim, funciona de forma semelhante a uma lista de adjacência 
+de um grafo direcionado.
 '''
 
 class StateMesh():

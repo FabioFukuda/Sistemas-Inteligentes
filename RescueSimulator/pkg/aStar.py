@@ -1,7 +1,5 @@
 from copy import deepcopy
 from stateMesh import StateMesh
-from state import State
-
 class AStar():
     
     #Classe auxiliar para manter os estados explorados no algoritmo A*.
@@ -41,7 +39,8 @@ class AStar():
 
     #Calcula o melhor caminho para voltar. Retorna uma lista com as direções da volta, e o tempo estimado.   
     def a_star_algorithm(self,goal:tuple,start:tuple,stateMesh:StateMesh):
-
+        if(goal == start):
+            return [],0
         #Estimativas de cada estado que estão na borda (State:estimativa)
         est = {}
         #curNode = dictNode[()]

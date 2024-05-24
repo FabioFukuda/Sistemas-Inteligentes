@@ -24,7 +24,7 @@ def main():
 
     print("dicionario config: ", configDict)
 
-    vict = Vict_gen(configDict["maxLin"], configDict["maxCol"], 42)
+    vict = Vict_gen(configDict["maxLin"], configDict["maxCol"], 160)
 
         
 if __name__ == '__main__':

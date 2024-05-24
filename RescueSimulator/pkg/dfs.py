@@ -1,6 +1,5 @@
 from typing import Tuple
 from stateMesh import StateMesh
-from state import State
 from aStar import AStar
 
 class DFS:
@@ -34,7 +33,7 @@ class DFS:
 		self.createNodeFunctions = {}
 		self.stackOrderCardinal = ['L','N','O','S']
 		self.stackOrderOrdinal = ['SE','NO','NE','SO']
-
+		self.stackOrder = ['L','N','O','S','SE','NO','NE','SO']
 		self.lastMovement = ''
 		self.initNodeCreationFunctions()
 
@@ -66,7 +65,7 @@ class DFS:
 			#Adiciona o caminho para se atingir o nó destino a partir do nó pai.
 			path.append(nextNode[0])
 			self.curNode = nextNode[1]
-			self.updateStackOrder(hitWall=True,nextAction = nextNode[0])
+			self.updateStackOrder(hitWall=True)
 			self.lastMovement = nextNode[0]
 			return path
 
@@ -114,20 +113,31 @@ class DFS:
 		self.lastMovement = nextNode[0]
 		return [nextNode[0]]
 
-	def updateStackOrder(self,hitWall,nextAction = None):
+	def updateStackOrder(self,hitWall):
 		if(hitWall):
-			index = self.stackOrderCardinal.index(self.lastMovement)
-			self.stackOrderCardinal[0],self.stackOrderCardinal[index] = self.stackOrderCardinal[index],self.stackOrderCardinal[0] 
+			if self.lastMovement in self.stackOrderCardinal:
+				index = self.stackOrderCardinal.index(self.lastMovement)
+				self.stackOrderCardinal[0],self.stackOrderCardinal[index] = self.stackOrderCardinal[index],self.stackOrderCardinal[0] 
+			elif self.lastMovement in self.stackOrderOrdinal:
+				index = self.stackOrderOrdinal.index(self.lastMovement)
+				self.stackOrderOrdinal[0],self.stackOrderOrdinal[index] = self.stackOrderOrdinal[index],self.stackOrderOrdinal[0] 
 		else:
-			index = self.stackOrderCardinal.index(self.lastMovement)
-			self.stackOrderCardinal[3],self.stackOrderCardinal[index] = self.stackOrderCardinal[index],self.stackOrderCardinal[3] 
+			if self.lastMovement in self.stackOrderCardinal:
+				index = self.stackOrderCardinal.index(self.lastMovement)
+				self.stackOrderCardinal[3],self.stackOrderCardinal[index] = self.stackOrderCardinal[index],self.stackOrderCardinal[3] 
+			elif self.lastMovement in self.stackOrderOrdinal:
+				index = self.stackOrderOrdinal.index(self.lastMovement)
+				self.stackOrderOrdinal[0],self.stackOrderOrdinal[index] = self.stackOrderOrdinal[index],self.stackOrderOrdinal[0] 
+
 
 	def createPosNodes(self,curNode):
 		nodes = []
+		
 		for dir in self.stackOrderCardinal:
 			self.createNodeFunctions[dir](self,curNode,nodes)
 		for dir in self.stackOrderOrdinal:
 			self.createNodeFunctions[dir](self,curNode,nodes)	
+			
 		return nodes
 
 	def initNodeCreationFunctions(self):

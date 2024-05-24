@@ -62,12 +62,9 @@ class Maze:
             self.board = False
 
 
-    def updateWalls(self):
-       
+    def updateWalls(self): 
         ## Metodo que atualiza a lista dos objetos (vitimas) que estao no labirinto
         vs_file = open(os.path.join("config_data" ,"sinaisvitais.txt"),"r")
-        diff_file = open(os.path.join("config_data" ,"new_difacesso.txt"),"r")
-
         ## Pega a matriz com todos os lugares (seja quadrado ou triangulo)
         aux = self.board.getListPlaces()
         victMap = self.board.mapVictims
@@ -90,15 +87,7 @@ class Maze:
                         self.vitalSignals[self.numberOfVictims-1].append(values)
                     else:
                         print("!!! warning: número de vítimas do ambiente maior do que número de sinais vitais")
-                
-                    diff_line = diff_file.readline()
-                    if diff_line:
-                        values = [float(signal) for signal in diff_line.split(" ")]
-                        print("dif. de acesso a vitima em (", pos[0], ",", pos[1], ") : ", values)
-                        self.diffAccess.append([])
-                        self.diffAccess[self.numberOfVictims-1].append(values)
-                    else:
-                        print("!!! warning: número de vítimas do ambiente maior do que número de dif. de acesso")
+            
         self.calcVictimsStats()
     def calcVictimsStats(self):
         for victim in self.vitalSignals:

@@ -35,7 +35,7 @@ linhaErrada = ambienteDict['Base'].split(' ')
 linhaCorrigida = ''
 for posicao in linhaErrada:
     x,y=posicao.split(',')
-    linhaCorrigida += str(y)+','+ str(x) + ' ' 
+    linhaCorrigida += str(x) +','+ str(y) + ' ' 
     pass
 linhaCorrigida = linhaCorrigida[0:-1]
 strSave += 'Agente ' + linhaCorrigida + '\n'
@@ -44,7 +44,7 @@ linhaErrada = ambienteDict['Parede'].split(' ')
 linhaCorrigida = ''
 for posicao in linhaErrada:
     x,y=posicao.split(',')
-    linhaCorrigida += str(y)+','+ str(x) + ' ' 
+    linhaCorrigida += str(x)+','+  str(y)+ ' ' 
     pass
 linhaCorrigida = linhaCorrigida[0:-1]
 
@@ -54,7 +54,7 @@ linhaErrada = ambienteDict['Vitimas'].split(' ')
 linhaCorrigida = ''
 for posicao in linhaErrada:
     x,y=posicao.split(',')
-    linhaCorrigida += str(y)+','+ str(x) + ' ' 
+    linhaCorrigida += str(x)+','+ str(y) + ' ' 
     pass
 linhaCorrigida = linhaCorrigida[0:-1]
 

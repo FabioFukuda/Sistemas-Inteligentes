@@ -1,7 +1,6 @@
 from random import randint
 from state import State
 from aStar import AStar
-from stateMesh import StateMesh
 from dfs import DFS
 
 class DFSPlan:
@@ -20,6 +19,8 @@ class DFSPlan:
         self.walls = []
         self.initialState = initialState
         self.currentState = initialState
+        self.successful = True
+        self.prevAction = ''
         self.actions = []
 
         self.nextAction = 'O'
@@ -59,8 +60,13 @@ class DFSPlan:
         
     def updateCurrentState(self, state):
         if(self.currentState == state):
-            self.nextAction = 'S'
+            self.successful = False
+        else:
+            self.successful = True
+
+        self.prevState = self.currentState
         self.currentState = state
+
         self.upGraph()
         if self.state == 0:
             self.upShortestWayBack()
@@ -89,30 +95,40 @@ class DFSPlan:
             self.path ,self.estTime = self.aStar.a_star_algorithm((self.currentState.row,self.currentState.col),
             (self.initialState.row,self.initialState.col),self.stateMesh)
 
-
+    def validState(self,state):
+        return state.col>=0 and state.row>0==0
     #Direções que o agente pode ir de acordo com a sua crença do mapa.
     def posDirections(self,state):
         
         posDir = []
         if self.prob.mazeBelief[state.row][state.col] == 1 and self.prob.mazeBelief[state.row][state.col+1]==1 and self.prob.mazeBelief[state.row+1][state.col]==1 :
             posDir.append(('NO',(state.row-1,state.col-1))) 
+        elif self.prevAction=='SE' and self.successful and self.prob.mazeBelief[state.row][state.col] == 1:
+            posDir.append(('NO',(state.row-1,state.col-1)))
         if self.prob.mazeBelief[state.row][state.col+1] == 1:
             posDir.append(('N',(state.row-1,state.col)))
         if self.prob.mazeBelief[state.row][state.col+2] == 1 and self.prob.mazeBelief[state.row][state.col+1]==1 and self.prob.mazeBelief[state.row+1][state.col+2]==1:
+            posDir.append(('NE',(state.row-1,state.col+1)))
+        elif self.prevAction=='SO' and self.successful and self.prob.mazeBelief[state.row][state.col+2] == 1:
             posDir.append(('NE',(state.row-1,state.col+1)))
         if self.prob.mazeBelief[state.row+1][state.col+2] == 1:
             posDir.append(('L',(state.row,state.col+1)))
         if self.prob.mazeBelief[state.row+2][state.col+2] == 1 and self.prob.mazeBelief[state.row+1][state.col+2]==1 and self.prob.mazeBelief[state.row+2][state.col+1]==1:
             posDir.append(('SE',(state.row+1,state.col+1))) 
+        elif self.prevAction=='NO' and self.successful and self.prob.mazeBelief[state.row+2][state.col+2] == 1:
+            posDir.append(('SE',(state.row+1,state.col+1)))
         if self.prob.mazeBelief[state.row+2][state.col+1] == 1:
             posDir.append(('S',(state.row+1,state.col)))
         if self.prob.mazeBelief[state.row+2][state.col] == 1  and self.prob.mazeBelief[state.row+1][state.col]==1 and self.prob.mazeBelief[state.row+2][state.col+1]==1 :
+            posDir.append(('SO',(state.row+1,state.col-1)))
+        elif self.prevAction=='NE' and self.successful and self.prob.mazeBelief[state.row+2][state.col] == 1:
             posDir.append(('SO',(state.row+1,state.col-1)))
         if self.prob.mazeBelief[state.row+1][state.col] == 1:
             posDir.append(('O',(state.row,state.col-1)))
         return posDir
 
     def chooseAction(self):
+        
         if(self.state == 0):
             if(len(self.dfsPath) == 0):
                 self.dfsPath = self.dfs.dfs((self.currentState.row,self.currentState.col)) 
@@ -131,32 +147,10 @@ class DFSPlan:
             state = State(self.currentState.row+self.dictDir[action][0],self.currentState.col+self.dictDir[action][1])
             self.path.pop(0)
             return action,state
-        '''
-        if(self.state == 0):
-            action = "L"  if self.EastDir == 1 else "O"
-            if(self.nextAction == 'S'):
-                action = self.nextAction
-                self.EastDir *= -1
-                self.nextAction = "L"  if self.EastDir == 1 else "O"
-
-            match action:
-                case 'L':
-                    return action,State(self.currentState.row,self.currentState.col+1) 
-                case 'S':
-                    return action,State(self.currentState.row+1,self.currentState.col) 
-                case 'O':
-                    return action,State(self.currentState.row,self.currentState.col-1)
-        else:
-            action = self.path[0]
-            state = State(self.currentState.row+self.dictDir[action][0],self.currentState.col+self.dictDir[action][1])
-            self.path.pop(0)
-            return action,state
-        '''
 
     def do(self):
         """
         Método utilizado para o polimorfismo dos planos
-
         Retorna o movimento e o estado do plano (False = nao concluido, True = Concluido)
         """
         

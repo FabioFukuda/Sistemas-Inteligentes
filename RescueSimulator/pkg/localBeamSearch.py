@@ -1,16 +1,8 @@
 from copy import deepcopy
-from operator import index
-from threading import Timer
 from aStar import AStar
 import random
 
-
-##APAGARR
-import pandas as pd
-import os
-import matplotlib.pyplot as plt
-
-class LocalSearch():
+class LocalBeamSearch():
 
     def __init__(self,model,initialState,prob,stateMesh):
         self.initialState = initialState
@@ -29,6 +21,7 @@ class LocalSearch():
         if(len(victims) == 0):
             return -1
         self.victims = victims
+        print('Calculando Distância entre as Vítimas...')
         for v1 in range(len(victims)-1):
             self.victDist[(v1,-1)] = self.aStar.a_star_algorithm(
                     (victims[v1]['pos'].row,victims[v1]['pos'].col),
@@ -47,7 +40,7 @@ class LocalSearch():
                     self.stateMesh
                 )  
                 self.victDist[(v2,v1)] = self.reversePath(self.victDist[(v1,v2)][0]),self.victDist[(v1,v2)][1]
-
+            print(f'{v1/len(victims)*100:.2f}%',end="\r")
         self.victDist[(len(victims)-1,-1)] = self.aStar.a_star_algorithm(
                     (victims[len(victims)-1]['pos'].row,victims[len(victims)-1]['pos'].col),
                     (self.initialState.row,self.initialState.col),
@@ -56,8 +49,8 @@ class LocalSearch():
         self.victDist[(-1,len(victims)-1)] = self.aStar.a_star_algorithm(
                     (self.initialState.row,self.initialState.col),
                     (victims[len(victims)-1]['pos'].row,victims[len(victims)-1]['pos'].col),
-                    self.stateMesh
-        )
+                    self.stateMesh)
+              
         return 1
 
     def reversePath(self,path):
@@ -173,7 +166,6 @@ class LocalSearch():
                 vicNeighbours.remove(new)
 
                 if self.calcCostSolution(newNeighbour)<=ts:
-                    #neighbours.append(newNeighbour)
                     neighbours[n] = newNeighbour
                     break
 
@@ -188,22 +180,12 @@ class LocalSearch():
         self.addVictim(neighbours,ts)
 
         eval = [self.evaluateSolution(solution) for solution in neighbours]
-        #cost = [self.calcCostSolution(solution) for solution in neighbours]
 
         maxEval = max(eval)
         indexBest = eval.index(maxEval)
-        '''
-        bestEval = [i for i,v in enumerate(eval) if v == maxEval]
-        minCost = cost[bestEval[0]]
-        indexBest = bestEval[0]
-        for e in bestEval:
-            if cost[e]<minCost:
-                indexBest = e
-                minCost = cost[e]
-        '''
         return neighbours[indexBest],maxEval
 
-    def localSearch(self,ts,nSolutions:int=20,nNei=5,numIt=100,numSwaps = 1,test=False):
+    def localSearch(self,ts,nSolutions:int=20,nNei=5,numIt=100,numSwaps = 1):
         solutions = []
         eval = []
 
@@ -218,10 +200,6 @@ class LocalSearch():
         'SE':1.5
         }
 
-        ###EVOLUÇÃO 
-        ev = {'iteracao':[],
-                'eval':[]}
-
         for i in range(nSolutions):
             sol = self.createSolution(ts)
             solutions.append(sol)
@@ -233,12 +211,7 @@ class LocalSearch():
                 bestNeighbour = self.chooseBestNeighbours(solutions[sol],nNei,ts,numSwaps)
                 solutions[sol] = bestNeighbour[0]
                 eval[sol] = bestNeighbour[1]
-                #cost[sol] = self.calcCostSolution(solutions[sol])
-
             maxEval = max(eval)
-            ev['iteracao'].append(i)
-            ev['eval'].append(maxEval)
-
             print(f'{i/numIt*100:.2f}%',end="\r")
 
         maxEval = max(eval)
@@ -246,9 +219,6 @@ class LocalSearch():
         indexBest = eval.index(maxEval)
         path = self.createPath(solutions[indexBest])
 
-        if test:
-            return ev['eval']
-    
         return path
 
     def createPath(self,solution):

@@ -2,18 +2,8 @@ import sys
 import os
 
 ## Importa Classes necessarias para o funcionamento
-from model import Model
 from dfsPlan import DFSPlan
 from state import State
-from random import randint
-from stateMesh import StateMesh
-
-## Importa o algoritmo para o plano
-from randomPlan import RandomPlan
-
-##Importa o Planner
-sys.path.append(os.path.join("pkg", "planner"))
-from planner import Planner
 
 ## Classe que define o Agente
 class AgentExplorer:
@@ -80,14 +70,9 @@ class AgentExplorer:
         
         self.plan = self.libPlan[0]
 
-        print("\n*** Inicio do ciclo raciocinio ***")
-        print("Pos agente no amb.: ", self.positionSensor())
-
         ## Redefine o estado atual do agente de acordo com o resultado da execução da ação do ciclo anterior
         self.currentState = self.positionSensor()
         self.plan.updateCurrentState(self.currentState) # atualiza o current state no plano
-
-        print("Ag cre que esta em: ", self.currentState)
 
         ## Verifica se a execução do acao do ciclo anterior funcionou ou nao
         if not (self.currentState == self.expectedState):
@@ -98,16 +83,14 @@ class AgentExplorer:
 
         ## Funcionou ou nao, vou somar o custo da acao com o total 
         self.costAll += self.prob.getActionCost(self.previousAction)
-        print ("Custo até o momento (com a ação escolhida):", self.costAll) 
 
         ## Verifica se tem vitima na posicao atual    
         victimId = self.victimPresenceSensor()
         if victimId > 0:
             if victimId not in self.victimsID:
                 print ("vitima encontrada em ", self.currentState, " id: ", victimId, " sinais vitais: ", self.victimVitalSignalsSensor(victimId))
-                print ("vitima encontrada em ", self.currentState, " id: ", victimId, " dif de acesso: ", self.victimDiffOfAcessSensor(victimId))
                 self.tl-=2
-                self.victims.append({'id':victimId,'pos':self.currentState,'vit':self.victimVitalSignalsSensor(victimId),'acc':self.victimDiffOfAcessSensor(victimId)})
+                self.victims.append({'id':victimId,'pos':self.currentState,'vit':self.victimVitalSignalsSensor(victimId)})
                 self.victimsID.append(victimId)
 
         ## consome o tempo gasto
@@ -123,15 +106,16 @@ class AgentExplorer:
         if self.prob.goalTest(self.currentState):
             print("!!! Objetivo atingido !!!")
             del self.libPlan[0]  ## retira plano da biblioteca
+
             print('Porcentual de vítimas encontradas:'+ str(len(self.victims)/self.model.getNumberOfVictims()))
-            print('tempo gasto pelo As por vítima salva:' + str((self.t-self.tl)/len(self.victims)))
-            print('Porcentual ponderado de vítimas encontradas por extrato de gravidade' + str(self.calcScore()))
+            print('tempo gasto pelo As por vítima salva: ' + str((self.t-self.tl)/len(self.victims)))
+            print('Porcentual ponderado de vítimas encontradas por extrato de gravidade: ' + str(self.calcScore()))
+            print('\n')
             return 0
             
         ## Define a proxima acao a ser executada
         ## currentAction eh uma tupla na forma: <direcao>, <state>
         result = self.plan.chooseAction()
-        print("Ag deliberou pela acao: ", result[0], " o estado resultado esperado é: ", result[1])
 
         ## Executa esse acao, atraves do metodo executeGo 
         self.executeGo(result[0])
@@ -193,12 +177,6 @@ class AgentExplorer:
         @param o id da vítima
         @return a lista de sinais vitais (ou uma lista vazia se não tem vítima com o id)"""     
         return self.model.getVictimVitalSignals(victimId)[0][-1]
-
-    def victimDiffOfAcessSensor(self, victimId):
-        """Simula um sensor que realiza a leitura dos dados relativos à dificuldade de acesso a vítima
-        @param o id da vítima
-        @return a lista dos dados de dificuldade (ou uma lista vazia se não tem vítima com o id)"""     
-        return self.model.getDifficultyOfAcess(victimId)[0][-1]
     
     ## Metodo que atualiza a biblioteca de planos, de acordo com o estado atual do agente
     def updateLibPlan(self):

@@ -2,8 +2,6 @@ import sys
 import os
 
 ## Importa Classes necessarias para o funcionamento
-from model import Model
-from problem import Problem
 from state import State
 from rescuePlan import RescuePlan
 
@@ -83,11 +81,9 @@ class AgentResc:
         
         if(result[0]=='nop'):
             print("!!! Fim do plano !!!")
-            print('Porcentual de vítimas encontradas:'+ str(len(self.rescVict)/self.model.getNumberOfVictims()))
-            print(f'Score:{self.calcScore()}')
-            print('tempo gasto pelo As por vítima salva:' + str((self.t-self.ts)/len(self.rescVict)))
-        
-
+            print('Porcentual de vítimas encontradas: '+ str(len(self.rescVict)/self.model.getNumberOfVictims()))
+            print(f'Score: {self.calcScore()}')
+            print('tempo gasto pelo As por vítima salva: ' + str((self.t-self.ts)/len(self.rescVict)))
             return -1
         
         self.executeGo(result[0])
@@ -148,12 +144,6 @@ class AgentResc:
         @return a lista de sinais vitais (ou uma lista vazia se não tem vítima com o id)"""     
         return self.model.getVictimVitalSignals(victimId)[0][-1]
 
-    def victimDiffOfAcessSensor(self, victimId):
-        """Simula um sensor que realiza a leitura dos dados relativos à dificuldade de acesso a vítima
-        @param o id da vítima
-        @return a lista dos dados de dificuldade (ou uma lista vazia se não tem vítima com o id)"""     
-        return self.model.getDifficultyOfAcess(victimId)
-    
     ## Metodo que atualiza a biblioteca de planos, de acordo com o estado atual do agente
     def updateLibPlan(self):
         for i in self.libPlan:

@@ -5,9 +5,9 @@ from stateMesh import StateMesh
 
 class Agent():
     def __init__(self,model,configDict):
-        #Lista de agentes
         self.prob = Problem()
         self.stateMesh = StateMesh()
+        #Lista de agentes
         self.agentExp = AgentExplorer(model,configDict,self.prob,self.stateMesh)
         self.agentResc = AgentResc(model,configDict,self.prob,self.stateMesh)
         self.agent = self.agentExp

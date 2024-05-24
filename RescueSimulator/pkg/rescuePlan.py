@@ -1,4 +1,4 @@
-from localSearch import LocalSearch
+from localBeamSearch import LocalBeamSearch
 from state import State
 
 class RescuePlan:
@@ -25,14 +25,14 @@ class RescuePlan:
 
         self.path = []
         
-        self.localSearch = LocalSearch(model,initialState,prob,stateMesh)
+        self.localSearch = LocalBeamSearch(model,initialState,prob,stateMesh)
     
     def calcPath(self,ts,victims):
         if(self.localSearch.calcMinVictimsDist(victims) == -1):
             return -1
-        numNei = len(victims)
-        numSwaps = int(numNei/2)
-        self.path = self.localSearch.localSearch(ts,20,numNei,200,numSwaps,test=False)
+        numNei = int(len(victims)/10)+1
+        numSwaps = int(len(victims)/10)+1
+        self.path = self.localSearch.localSearch(ts,20,numNei,200,numSwaps)
         return 1
     def chooseAction(self):
         if len(self.path) == 0:
